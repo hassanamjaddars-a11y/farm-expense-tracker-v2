@@ -1,0 +1,144 @@
+.auth-shell {
+  display: grid;
+  gap: 12px;
+}
+
+.auth-panel,
+.auth-form-panel {
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+}
+
+.auth-panel {
+  padding: 16px;
+  overflow: hidden;
+}
+
+.auth-hero {
+  position: relative;
+  padding: 2px 0 4px;
+}
+
+.auth-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.auth-title {
+  margin: 12px 0 8px;
+  font-size: 26px;
+  line-height: 1.05;
+  letter-spacing: -0.05em;
+}
+
+.auth-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.auth-feature-grid {
+  margin-top: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.auth-feature-card {
+  padding: 13px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #f8fbff);
+  border: 1px solid #edf2f8;
+}
+
+.auth-feature-card strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.auth-feature-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.auth-form-panel {
+  padding: 16px;
+}
+
+.auth-switch-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px;
+  border-radius: 16px;
+  background: #eff6ff;
+  margin-bottom: 14px;
+}
+
+.auth-switch-btn {
+  padding: 11px;
+  border-radius: 13px;
+  background: transparent;
+  color: #1e3a8a;
+  font-weight: 800;
+}
+
+.auth-switch-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(37, 99, 235, 0.18);
+}
+
+.auth-form {
+  display: grid;
+  gap: 13px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.input-shell {
+  position: relative;
+}
+
+.auth-note {
+  margin-top: 14px;
+  padding: 13px;
+  border-radius: 14px;
+  background: #f8fbff;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  border: 1px solid #e6eef8;
+}
+
+.auth-footnote {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media (max-width: 420px) {
+  .auth-title {
+    font-size: 24px;
+  }
+}

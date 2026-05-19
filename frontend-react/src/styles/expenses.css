@@ -1,0 +1,1804 @@
+.expense-premium-page {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 8px 0 110px;
+  display: grid;
+  gap: 14px;
+  color: #0f172a;
+}
+
+.expense-premium-page *,
+.expense-premium-page *::before,
+.expense-premium-page *::after {
+  box-sizing: border-box;
+}
+
+.expense-premium-page button,
+.expense-premium-page input,
+.expense-premium-page select {
+  font: inherit;
+}
+
+.expense-premium-page button {
+  border: 0;
+  cursor: pointer;
+}
+
+.expense-farm-header {
+  position: relative;
+  width: calc(100% - 24px);
+  min-height: 206px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 0 0 34px 34px;
+  color: #ffffff;
+  background: #061223;
+  box-shadow: 0 22px 46px rgba(15, 23, 42, 0.2);
+}
+
+.expense-header-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+  transform: scale(1.02);
+}
+
+.expense-header-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(2, 6, 23, 0.22) 0%, rgba(2, 6, 23, 0.14) 34%, rgba(2, 6, 23, 0.82) 100%),
+    linear-gradient(90deg, rgba(2, 6, 23, 0.72) 0%, rgba(2, 6, 23, 0.24) 58%, rgba(2, 6, 23, 0.1) 100%);
+  z-index: 1;
+}
+
+.expense-header-glow {
+  position: absolute;
+  right: -56px;
+  bottom: -68px;
+  width: 170px;
+  height: 170px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.18);
+  filter: blur(12px);
+  z-index: 2;
+}
+
+.expense-brand-row,
+.expense-page-title {
+  position: relative;
+  z-index: 5;
+}
+
+.expense-brand-row {
+  padding: 16px 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.expense-brand-left {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expense-logo-orb {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 35% 25%, rgba(187, 247, 208, 0.3), transparent 38%),
+    linear-gradient(135deg, #06451f 0%, #0d7b3f 100%);
+  border: 1px solid rgba(134, 239, 172, 0.35);
+  box-shadow:
+    inset 0 0 0 5px rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.26);
+}
+
+.expense-logo-orb span {
+  display: block;
+  font-size: 25px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.25));
+}
+
+.expense-brand-copy {
+  min-width: 0;
+}
+
+.expense-brand-copy h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  font-weight: 950;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expense-brand-copy p {
+  margin: 7px 0 0;
+  color: rgba(226, 232, 240, 0.86);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.expense-settings-button {
+  width: 50px;
+  height: 50px;
+  min-width: 50px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 25px;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(10px);
+}
+
+.expense-page-title {
+  position: absolute;
+  left: 16px;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.expense-page-icon {
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  border: 1px solid rgba(187, 247, 208, 0.28);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.24);
+}
+
+.expense-page-copy {
+  min-width: 0;
+  padding-bottom: 3px;
+}
+
+.expense-page-copy h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 31px;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+  font-weight: 1000;
+}
+
+.expense-total-card,
+.expense-panel {
+  width: calc(100% - 24px);
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+}
+
+.expense-total-card {
+  position: relative;
+  z-index: 7;
+  min-height: 150px;
+  margin-top: -16px;
+  overflow: hidden;
+  padding: 23px 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 114px;
+  gap: 8px;
+  align-items: center;
+  background:
+    radial-gradient(circle at 88% 47%, rgba(34, 197, 94, 0.12), transparent 30%),
+    linear-gradient(135deg, #ffffff 0%, #f7fff9 100%);
+}
+
+.expense-total-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.3;
+  background:
+    repeating-radial-gradient(
+      circle at 76% 48%,
+      rgba(21, 128, 61, 0.13) 0 1px,
+      transparent 1px 9px
+    );
+  pointer-events: none;
+}
+
+.expense-total-copy,
+.expense-wallet-art {
+  position: relative;
+  z-index: 2;
+}
+
+.expense-total-label {
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 17px;
+  font-weight: 850;
+  letter-spacing: -0.03em;
+}
+
+.expense-total-value {
+  margin: 0;
+  color: #166534;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  font-weight: 1000;
+  white-space: nowrap;
+}
+
+.expense-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 15px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.expense-trend span {
+  width: 25px;
+  height: 25px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 1000;
+}
+
+.expense-trend strong {
+  color: #166534;
+  font-size: 14px;
+}
+
+.expense-wallet-art {
+  width: 112px;
+  height: 96px;
+  transform: scale(0.94);
+  transform-origin: center;
+}
+
+.expense-paper {
+  position: absolute;
+  right: 12px;
+  top: 2px;
+  width: 46px;
+  height: 60px;
+  border-radius: 8px 8px 12px 12px;
+  background: #ffffff;
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 1000;
+  padding: 10px 8px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+}
+
+.expense-paper::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  border-top: 14px solid #e2e8f0;
+  border-left: 14px solid transparent;
+  border-radius: 0 8px 0 5px;
+}
+
+.expense-paper::after {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 4px;
+  margin-top: 10px;
+  border-radius: 99px;
+  background: #86efac;
+  box-shadow: 0 10px 0 #bbf7d0, 0 20px 0 #dcfce7;
+}
+
+.expense-wallet {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  width: 82px;
+  height: 54px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #071f17, #183f2c);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 15px 28px rgba(15, 23, 42, 0.18);
+}
+
+.expense-wallet::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 13px;
+  width: 28px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.expense-wallet::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  box-shadow: inset -8px -10px 14px rgba(0, 0, 0, 0.12);
+}
+
+.expense-wallet span {
+  position: absolute;
+  right: -6px;
+  top: 20px;
+  width: 24px;
+  height: 18px;
+  border-radius: 9px;
+  background: #34d399;
+  border: 3px solid #14532d;
+}
+
+.expense-wallet span::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #dcfce7;
+}
+
+.expense-down {
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #22c55e, #15803d);
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 1000;
+  box-shadow: 0 10px 20px rgba(21, 128, 61, 0.25);
+}
+
+.expense-panel {
+  padding: 17px;
+}
+
+.expense-panel-heading,
+.expense-section-head,
+.expense-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.expense-section-head {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.expense-panel h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 20px;
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+  font-weight: 1000;
+}
+
+.expense-heading-icon,
+.expense-section-icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+}
+
+.expense-heading-icon {
+  background: linear-gradient(135deg, #22c55e, #15803d);
+  color: #ffffff;
+  font-size: 24px;
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.2);
+}
+
+.expense-section-icon {
+  background: #ecfdf3;
+  color: #15803d;
+  font-size: 19px;
+}
+
+.expense-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 16px;
+}
+
+.expense-field-card {
+  min-height: 70px;
+  border: 1px solid #dfe7f2;
+  border-radius: 17px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.82));
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.expense-field-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #ecfdf3;
+  color: #15803d;
+  font-size: 18px;
+}
+
+.expense-field-content {
+  min-width: 0;
+}
+
+.expense-field-card small {
+  display: block;
+  margin-bottom: 5px;
+  color: #0f172a;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.expense-field-card input,
+.expense-field-card select,
+.expense-add-row input,
+.expense-search input {
+  width: 100%;
+  min-height: 24px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #0f172a;
+  font-size: 13px;
+  padding: 0;
+}
+
+.expense-field-card select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.expense-field-card input::placeholder,
+.expense-add-row input::placeholder,
+.expense-search input::placeholder {
+  color: #94a3b8;
+}
+
+.expense-field-chevron {
+  color: #64748b;
+  font-size: 17px;
+}
+
+.expense-save-premium,
+.expense-cancel-premium {
+  width: 100%;
+  min-height: 54px;
+  margin-top: 14px;
+  border-radius: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.expense-save-premium {
+  background: linear-gradient(135deg, #22c55e, #15803d);
+  color: #ffffff;
+  box-shadow: 0 14px 24px rgba(22, 163, 74, 0.2);
+}
+
+.expense-save-premium svg {
+  font-size: 20px;
+}
+
+.expense-cancel-premium {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.expense-view-link {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: transparent;
+  color: #166534;
+  font-size: 12px;
+  font-weight: 950;
+  white-space: nowrap;
+  padding: 2px 0;
+}
+
+.expense-view-link svg {
+  font-size: 15px;
+}
+
+.expense-search {
+  margin-top: 14px;
+  min-height: 44px;
+  padding: 0 13px;
+  border-radius: 15px;
+  border: 1px solid #dfe7f2;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #15803d;
+}
+
+.expense-search input {
+  color: #0f172a;
+}
+
+.expense-recent-list {
+  margin-top: 12px;
+  display: grid;
+}
+
+.expense-recent-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.expense-recent-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.expense-category-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.expense-category-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.expense-category-icon svg {
+  font-size: 21px;
+}
+
+.expense-category-icon.diesel {
+  background: #e7f8e9;
+  color: #166534;
+}
+
+.expense-category-icon.fertilizer {
+  background: #eaf9df;
+  color: #15803d;
+}
+
+.expense-category-icon.seeds {
+  background: #eefbd8;
+  color: #3f8f17;
+}
+
+.expense-category-icon.repair {
+  background: #eaf2ff;
+  color: #2563eb;
+}
+
+.expense-category-icon.pesticide {
+  background: #e8fff3;
+  color: #059669;
+}
+
+.expense-category-icon.other {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.expense-recent-main {
+  min-width: 0;
+}
+
+.expense-recent-main strong {
+  display: block;
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 1.15;
+  font-weight: 1000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expense-recent-main span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.expense-recent-date {
+  grid-column: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1;
+}
+
+.expense-recent-date svg {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.expense-recent-side {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  min-width: 96px;
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.expense-recent-side b {
+  color: #dc2626;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 1000;
+  white-space: nowrap;
+}
+
+.expense-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  color: #94a3b8;
+}
+
+.expense-row-actions button {
+  min-height: 25px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.expense-row-actions button.danger {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.expense-row-actions svg {
+  font-size: 14px;
+}
+
+.expense-category-grid {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.expense-category-tile {
+  min-height: 78px;
+  border-radius: 16px;
+  border: 1px solid #e6edf7;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  padding: 9px 7px;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 7px;
+  text-align: center;
+}
+
+.expense-category-tile .expense-category-icon {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+}
+
+.expense-category-copy {
+  min-width: 0;
+  width: 100%;
+}
+
+.expense-category-copy strong {
+  display: block;
+  color: #0f172a;
+  font-size: 11px;
+  line-height: 1.12;
+  font-weight: 1000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expense-category-copy span {
+  display: block;
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 9px;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.expense-image-upload {
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #ecfdf3;
+  color: #166534;
+  font-size: 9px;
+  font-weight: 950;
+  cursor: pointer;
+}
+
+.expense-image-upload svg {
+  font-size: 12px;
+}
+
+.expense-image-upload input {
+  display: none;
+}
+
+.expense-manage-box {
+  margin-top: 15px;
+  padding: 13px;
+  border-radius: 18px;
+  border: 1px solid #dfe7f2;
+  background: linear-gradient(180deg, #f8fafc, #ffffff);
+  display: grid;
+  gap: 12px;
+}
+
+.expense-manage-box h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  font-weight: 1000;
+}
+
+.expense-manage-box p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.expense-add-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 78px;
+  gap: 9px;
+}
+
+.expense-add-row input {
+  min-height: 44px;
+  border: 1px solid #dfe7f2;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 0 12px;
+}
+
+.expense-add-row button {
+  min-height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #22c55e, #15803d);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 1000;
+  box-shadow: 0 10px 18px rgba(22, 163, 74, 0.16);
+}
+
+.expense-empty {
+  margin-top: 14px;
+  padding: 15px;
+  border-radius: 16px;
+  border: 1px dashed #d8e1ee;
+  background: #f8fbff;
+  color: #64748b;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.expense-bottom-space {
+  height: 12px;
+}
+
+@media (max-width: 430px) {
+  .expense-premium-page {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .expense-farm-header {
+    min-height: 200px;
+  }
+
+  .expense-page-title {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .expense-page-copy h2 {
+    font-size: 30px;
+  }
+
+  .expense-total-card {
+    grid-template-columns: minmax(0, 1fr) 100px;
+    padding: 21px 16px;
+  }
+
+  .expense-total-value {
+    font-size: 30px;
+  }
+
+  .expense-wallet-art {
+    transform: scale(0.86);
+  }
+
+  .expense-panel {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 370px) {
+  .expense-brand-copy h1 {
+    font-size: 16px;
+  }
+
+  .expense-brand-copy p {
+    font-size: 11px;
+  }
+
+  .expense-page-icon {
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    border-radius: 17px;
+    font-size: 26px;
+  }
+
+  .expense-page-copy h2 {
+    font-size: 28px;
+  }
+
+  .expense-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .expense-category-tile {
+    min-height: 94px;
+  }
+
+  .expense-add-row {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-add-row button {
+    width: 100%;
+  }
+
+  .expense-recent-row {
+    grid-template-columns: 46px minmax(0, 1fr);
+  }
+
+  .expense-recent-side {
+    grid-column: 2;
+    grid-row: auto;
+    justify-items: start;
+  }
+}
+/* =========================================================
+   FINAL EXPENSE PAGE WIDTH + HEADER FIX
+   Removes the need for the extra shell topbar through App.jsx,
+   makes the farm image and content align like Home,
+   and keeps the total expense card slightly smaller.
+   ========================================================= */
+
+.expense-premium-page {
+  max-width: 430px !important;
+  padding: 0 0 110px !important;
+  gap: 14px !important;
+}
+
+.expense-farm-header {
+  width: 100% !important;
+  min-height: 214px !important;
+  margin: 0 auto !important;
+  border-radius: 0 0 34px 34px !important;
+}
+
+.expense-header-image {
+  object-position: center 38% !important;
+  transform: scale(1.01) !important;
+}
+
+.expense-brand-row {
+  padding: 18px 18px 0 !important;
+}
+
+.expense-logo-orb {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+}
+
+.expense-brand-copy h1 {
+  font-size: 17px !important;
+}
+
+.expense-brand-copy p {
+  font-size: 12px !important;
+}
+
+.expense-settings-button {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  border-radius: 18px !important;
+}
+
+.expense-page-title {
+  left: 18px !important;
+  right: 18px !important;
+  bottom: 20px !important;
+  gap: 13px !important;
+}
+
+.expense-page-icon {
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+}
+
+.expense-page-copy h2 {
+  font-size: 30px !important;
+}
+
+.expense-total-card {
+  width: calc(100% - 20px) !important;
+  min-height: 136px !important;
+  margin-top: -16px !important;
+  padding: 18px 18px !important;
+  grid-template-columns: minmax(0, 1fr) 104px !important;
+  border-radius: 24px !important;
+}
+
+.expense-total-label {
+  margin-bottom: 10px !important;
+  font-size: 15px !important;
+}
+
+.expense-total-value {
+  font-size: 29px !important;
+}
+
+.expense-trend {
+  margin-top: 13px !important;
+}
+
+.expense-wallet-art {
+  transform: scale(0.82) !important;
+  transform-origin: center right !important;
+}
+
+.expense-panel {
+  width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  border-radius: 24px !important;
+}
+
+.expense-bottom-space {
+  height: 26px !important;
+}
+
+@media (max-width: 430px) {
+  .expense-premium-page {
+    max-width: 430px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .expense-farm-header {
+    width: 100% !important;
+    min-height: 208px !important;
+  }
+
+  .expense-total-card {
+    width: calc(100% - 20px) !important;
+    min-height: 132px !important;
+    padding: 17px 16px !important;
+    grid-template-columns: minmax(0, 1fr) 96px !important;
+  }
+
+  .expense-total-value {
+    font-size: 27px !important;
+  }
+
+  .expense-panel {
+    width: 100% !important;
+  }
+}
+
+@media (max-width: 370px) {
+  .expense-total-value {
+    font-size: 25px !important;
+  }
+
+  .expense-total-card {
+    grid-template-columns: minmax(0, 1fr) 84px !important;
+  }
+
+  .expense-wallet-art {
+    transform: scale(0.74) !important;
+  }
+}
+
+/* =========================================================
+   SHARED PREMIUM SETTINGS DROPDOWN + MATCHED FARM LOGO
+   ========================================================= */
+
+.farm-premium-logo-mark,
+.farm-premium-logo-mark svg {
+  width: 25px;
+  height: 25px;
+  display: block;
+}
+
+.farm-premium-logo-mark {
+  color: #d9ff75;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.28));
+}
+
+.premium-profile-dropdown {
+  position: absolute;
+  top: 64px;
+  right: 0;
+  width: min(330px, calc(100vw - 36px));
+  z-index: 80;
+  overflow: hidden;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(34, 197, 94, 0.12), transparent 34%),
+    rgba(255, 255, 255, 0.98);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+  color: #0f172a;
+}
+
+.premium-profile-head {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+}
+
+.premium-profile-avatar {
+  width: 62px;
+  height: 62px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #064e3b;
+  color: #ffffff;
+  font-size: 19px;
+  font-weight: 1000;
+}
+
+.premium-profile-head strong,
+.premium-profile-head span {
+  display: block;
+  min-width: 0;
+}
+
+.premium-profile-head strong {
+  color: #0f172a;
+  font-size: 17px;
+  line-height: 1.1;
+  font-weight: 1000;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.premium-profile-head span {
+  margin-top: 7px;
+  color: #64748b;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.premium-profile-actions {
+  padding: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.premium-profile-actions button {
+  width: 100%;
+  min-height: 58px;
+  border: 0;
+  border-radius: 18px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  background: transparent;
+  color: #0f172a;
+}
+
+.premium-profile-actions button:hover {
+  background: #f8fafc;
+}
+
+.premium-profile-actions button > span {
+  width: 36px;
+  height: 36px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: #ecfdf3;
+}
+
+.premium-profile-actions button strong,
+.premium-profile-actions button small {
+  display: block;
+}
+
+.premium-profile-actions button strong {
+  color: #0f172a;
+  font-size: 13px;
+  line-height: 1.1;
+  font-weight: 950;
+}
+
+.premium-profile-actions button small {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.premium-profile-actions button.danger > span {
+  background: #fee2e2;
+}
+
+.premium-profile-actions button.danger strong {
+  color: #dc2626;
+}
+
+.expense-settings-wrap {
+  position: relative;
+  z-index: 90;
+}
+
+.expense-profile-dropdown {
+  top: 60px;
+}
+
+.expense-logo-orb {
+  color: #d9ff75 !important;
+}
+
+
+/* =========================================================
+   FINAL SAFE EXPENSE LOGO FIX
+   Only removes the white logo ring on Expense page.
+   Nothing else in the Expense UI is changed.
+   ========================================================= */
+
+.expense-logo-no-ring,
+.expense-brand-logo-image {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #061223 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.18) !important;
+}
+
+.expense-logo-no-ring::before,
+.expense-logo-no-ring::after,
+.expense-brand-logo-image::before,
+.expense-brand-logo-image::after {
+  content: none !important;
+  display: none !important;
+}
+
+.expense-logo-no-ring .expense-app-logo,
+.expense-logo-no-ring img,
+.expense-brand-logo-image .expense-app-logo,
+.expense-brand-logo-image img {
+  width: 168% !important;
+  height: 168% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  transform: none !important;
+}
+
+@media (max-width: 430px) {
+  .expense-logo-no-ring,
+  .expense-brand-logo-image {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+  }
+
+  .expense-logo-no-ring .expense-app-logo,
+  .expense-logo-no-ring img,
+  .expense-brand-logo-image .expense-app-logo,
+  .expense-brand-logo-image img {
+    width: 172% !important;
+    height: 172% !important;
+  }
+}
+/* =========================================================
+   UNIFIED PREMIUM SETTINGS MENU
+   Makes Home / Expense / Workers / Reports / CashBook / Sales
+   settings dropdown look like the Expense settings menu.
+   This touches only settings dropdown UI.
+   ========================================================= */
+
+.home-settings-wrap,
+.expense-settings-wrap,
+.worker-settings-wrap,
+.workers-settings-wrap,
+.reports-settings-wrap,
+.cashbook-menu-wrap,
+.sales-menu-wrap,
+.settings-wrap,
+.topbar-actions {
+  position: relative !important;
+  z-index: 2147483000 !important;
+  overflow: visible !important;
+}
+
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown,
+.settings-dropdown,
+.profile-dropdown,
+.topbar-menu-right {
+  position: fixed !important;
+  top: 92px !important;
+  right: max(18px, calc((100vw - 430px) / 2 + 18px)) !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  z-index: 2147483647 !important;
+  width: min(330px, calc(100vw - 36px)) !important;
+  max-width: min(330px, calc(100vw - 36px)) !important;
+  max-height: calc(100vh - 118px) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  gap: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(34, 197, 94, 0.12), transparent 34%),
+    rgba(255, 255, 255, 0.985) !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22) !important;
+  color: #0f172a !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.home-settings-profile,
+.premium-profile-head,
+.reports-profile-head,
+.cashbook-profile-head,
+.sales-profile-head,
+.settings-profile-head,
+.profile-dropdown-head {
+  display: grid !important;
+  grid-template-columns: 62px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: center !important;
+  padding: 20px !important;
+  min-height: 98px !important;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(34, 197, 94, 0.12), transparent 34%),
+    linear-gradient(135deg, #f8fafc, #ffffff) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.95) !important;
+}
+
+.home-settings-avatar,
+.premium-profile-avatar,
+.reports-profile-avatar,
+.cashbook-profile-avatar,
+.sales-profile-avatar,
+.settings-avatar,
+.profile-avatar-large {
+  width: 62px !important;
+  height: 62px !important;
+  min-width: 62px !important;
+  border-radius: 999px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #064e3b !important;
+  color: #ffffff !important;
+  font-size: 19px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+  box-shadow: none !important;
+}
+
+.home-settings-profile strong,
+.premium-profile-head strong,
+.reports-profile-head strong,
+.cashbook-profile-head strong,
+.sales-profile-head strong,
+.settings-profile-head strong,
+.profile-name {
+  display: block !important;
+  color: #0f172a !important;
+  font-size: 17px !important;
+  line-height: 1.1 !important;
+  font-weight: 1000 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.home-settings-profile small,
+.premium-profile-head span,
+.reports-profile-head span,
+.cashbook-profile-head span,
+.sales-profile-head span,
+.settings-profile-head small,
+.profile-email {
+  display: block !important;
+  margin-top: 7px !important;
+  color: #64748b !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  word-break: normal !important;
+}
+
+.home-settings-list,
+.premium-profile-actions,
+.reports-profile-menu,
+.settings-menu-list,
+.profile-menu-list {
+  display: grid !important;
+  gap: 6px !important;
+  padding: 10px !important;
+  background: transparent !important;
+}
+
+/* CashBook/Sales do not wrap their buttons in a menu list, so give direct buttons the same spacing. */
+.cashbook-profile-dropdown > button,
+.sales-profile-dropdown > button {
+  margin: 0 10px 6px !important;
+}
+
+.cashbook-profile-dropdown > button:first-of-type,
+.sales-profile-dropdown > button:first-of-type {
+  margin-top: 10px !important;
+}
+
+.cashbook-profile-dropdown > button:last-of-type,
+.sales-profile-dropdown > button:last-of-type {
+  margin-bottom: 10px !important;
+}
+
+.home-settings-list button,
+.premium-profile-actions button,
+.reports-profile-menu button,
+.cashbook-profile-dropdown > button,
+.sales-profile-dropdown > button,
+.settings-menu-item,
+.profile-menu-item {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 58px !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  padding: 10px 12px !important;
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: center !important;
+  text-align: left !important;
+  background: transparent !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.premium-profile-actions button {
+  grid-template-columns: 36px minmax(0, 1fr) !important;
+}
+
+.home-settings-list button:hover,
+.premium-profile-actions button:hover,
+.reports-profile-menu button:hover,
+.cashbook-profile-dropdown > button:hover,
+.sales-profile-dropdown > button:hover,
+.settings-menu-item:hover,
+.profile-menu-item:hover {
+  background: #f8fafc !important;
+  transform: none !important;
+}
+
+.home-settings-list button > span,
+.premium-profile-actions button > span,
+.reports-profile-menu button > span,
+.cashbook-profile-dropdown > button > span,
+.sales-profile-dropdown > button > span,
+.settings-menu-item > span,
+.profile-menu-item > span {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 13px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #ecfdf3 !important;
+  color: #15803d !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  font-weight: 950 !important;
+  box-shadow: none !important;
+}
+
+.home-settings-list button > span svg,
+.premium-profile-actions button > span svg,
+.reports-profile-menu button > span svg,
+.cashbook-profile-dropdown > button > span svg,
+.sales-profile-dropdown > button > span svg,
+.settings-menu-item > span svg,
+.profile-menu-item > span svg {
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 18px !important;
+}
+
+.home-settings-list button strong,
+.premium-profile-actions button strong,
+.reports-profile-menu button strong,
+.cashbook-profile-dropdown > button strong,
+.sales-profile-dropdown > button strong,
+.settings-menu-item strong,
+.profile-menu-item strong {
+  display: block !important;
+  color: #0f172a !important;
+  font-size: 14px !important;
+  line-height: 1.12 !important;
+  font-weight: 1000 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.home-settings-list button small,
+.premium-profile-actions button small,
+.reports-profile-menu button small,
+.cashbook-profile-dropdown > button small,
+.sales-profile-dropdown > button small,
+.settings-menu-item small,
+.profile-menu-item small {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #64748b !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-weight: 500 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.home-settings-list button em,
+.settings-menu-item em,
+.profile-menu-item em {
+  color: #94a3b8 !important;
+  font-size: 20px !important;
+  font-style: normal !important;
+  line-height: 1 !important;
+  justify-self: end !important;
+}
+
+.home-settings-list button.danger > span,
+.premium-profile-actions button.danger > span,
+.reports-profile-menu button.danger > span,
+.cashbook-profile-dropdown > button.danger > span,
+.sales-profile-dropdown > button.danger > span,
+.settings-menu-item.danger > span,
+.profile-menu-item.danger-item > span,
+.profile-menu-item.danger > span {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+.home-settings-list button.danger strong,
+.premium-profile-actions button.danger strong,
+.reports-profile-menu button.danger strong,
+.cashbook-profile-dropdown > button.danger strong,
+.sales-profile-dropdown > button.danger strong,
+.settings-menu-item.danger strong,
+.profile-menu-item.danger-item strong,
+.profile-menu-item.danger strong {
+  color: #dc2626 !important;
+}
+
+@media (max-width: 430px) {
+  .home-settings-dropdown,
+  .premium-profile-dropdown,
+  .expense-profile-dropdown,
+  .worker-profile-dropdown,
+  .workers-profile-dropdown,
+  .reports-profile-dropdown,
+  .cashbook-profile-dropdown,
+  .sales-profile-dropdown,
+  .settings-dropdown,
+  .profile-dropdown,
+  .topbar-menu-right {
+    top: 86px !important;
+    right: 14px !important;
+    width: min(326px, calc(100vw - 28px)) !important;
+    max-width: min(326px, calc(100vw - 28px)) !important;
+    max-height: calc(100vh - 104px) !important;
+  }
+
+  .home-settings-profile,
+  .premium-profile-head,
+  .reports-profile-head,
+  .cashbook-profile-head,
+  .sales-profile-head,
+  .settings-profile-head,
+  .profile-dropdown-head {
+    grid-template-columns: 56px minmax(0, 1fr) !important;
+    gap: 14px !important;
+    padding: 18px !important;
+    min-height: 90px !important;
+  }
+
+  .home-settings-avatar,
+  .premium-profile-avatar,
+  .reports-profile-avatar,
+  .cashbook-profile-avatar,
+  .sales-profile-avatar,
+  .settings-avatar,
+  .profile-avatar-large {
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    font-size: 18px !important;
+  }
+}
+
+/* =========================================================
+   EXPENSE CARD REAL IMAGE + CASHBOOK-STYLE BACKGROUND
+   Final fix: removes visible white/checker patch by blending + clipping
+   src/assets/cash-wallet-pkr.png stays the Expense image.
+   ========================================================= */
+
+.expense-total-card {
+  position: relative !important;
+  overflow: hidden !important;
+  background:
+    radial-gradient(circle at 88% 100%, rgba(255, 255, 255, 0.14), transparent 35%),
+    linear-gradient(135deg, #ffffff 0%, #f7fff9 100%) !important;
+}
+
+/* Use ::before because old App.css may disable ::after. */
+.expense-total-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  opacity: 0.24 !important;
+  background:
+    repeating-radial-gradient(
+      circle at 80% 48%,
+      rgba(21, 128, 61, 0.13) 0 1px,
+      transparent 1px 10px
+    ) !important;
+  pointer-events: none !important;
+}
+
+.expense-total-copy,
+.expense-wallet-art {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.expense-wallet-art.expense-wallet-art-image {
+  width: 132px !important;
+  height: 112px !important;
+  justify-self: end !important;
+  align-self: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transform-origin: center !important;
+  isolation: auto !important;
+}
+
+.expense-wallet-art.expense-wallet-art-image::before,
+.expense-wallet-art.expense-wallet-art-image::after,
+.expense-wallet-art.expense-wallet-art-image .expense-paper,
+.expense-wallet-art.expense-wallet-art-image .expense-wallet,
+.expense-wallet-art.expense-wallet-art-image .expense-down {
+  content: none !important;
+  display: none !important;
+}
+
+/*
+  This is the important part:
+  - mix-blend-mode:multiply hides the light baked background/checker patch.
+  - clip-path cuts away the square canvas corners.
+  - no background or box is applied behind the image.
+*/
+.expense-wallet-art.expense-wallet-art-image img {
+  width: 148px !important;
+  height: 124px !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  display: block !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  transform: translate(2px, -1px) !important;
+  mix-blend-mode: multiply !important;
+  filter: contrast(1.04) saturate(1.04) drop-shadow(0 10px 14px rgba(15, 23, 42, 0.10)) !important;
+  clip-path: polygon(
+    31% 0%,
+    73% 7%,
+    81% 35%,
+    92% 42%,
+    96% 78%,
+    86% 100%,
+    14% 100%,
+    4% 82%,
+    6% 38%,
+    20% 24%
+  ) !important;
+}
+
+@media (max-width: 430px) {
+  .expense-wallet-art.expense-wallet-art-image {
+    width: 118px !important;
+    height: 100px !important;
+  }
+
+  .expense-wallet-art.expense-wallet-art-image img {
+    width: 134px !important;
+    height: 114px !important;
+  }
+}
+
+@media (max-width: 370px) {
+  .expense-wallet-art.expense-wallet-art-image {
+    width: 102px !important;
+    height: 88px !important;
+  }
+
+  .expense-wallet-art.expense-wallet-art-image img {
+    width: 116px !important;
+    height: 98px !important;
+  }
+}

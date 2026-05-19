@@ -1,0 +1,3120 @@
+:root {
+  --app-bg: #edf4fb;
+  --app-dark: #05101f;
+  --app-green: #16a34a;
+  --app-neon: #9cff57;
+  --app-red: #ef1c1c;
+  --app-purple: #7c3aed;
+  --app-blue: #2563eb;
+  --app-text: #0f172a;
+  --app-muted: #64748b;
+  --app-line: #dce7f2;
+  --app-card: rgba(255, 255, 255, 0.965);
+  --app-shadow: 0 18px 44px rgba(15, 23, 42, 0.12);
+  --farm-brand-logo-size: 50px;
+  --farm-settings-size: 50px;
+  --farm-header-radius: 0 0 30px 30px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--app-bg);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--app-text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at 16% 4%, rgba(37, 99, 235, 0.1), transparent 28%),
+    radial-gradient(circle at 86% 9%, rgba(34, 197, 94, 0.13), transparent 30%),
+    linear-gradient(180deg, #eaf1f8 0%, #f8fbff 58%, #ffffff 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  padding: 0 10px calc(112px + env(safe-area-inset-bottom));
+  overflow: visible;
+}
+
+.app-shell-guest {
+  padding-bottom: 20px;
+}
+
+.shell-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 22% 6%, rgba(37, 99, 235, 0.08), transparent 20%),
+    radial-gradient(circle at 82% 8%, rgba(34, 197, 94, 0.08), transparent 22%),
+    linear-gradient(180deg, rgba(239, 246, 255, 0.66), rgba(255, 255, 255, 0.28));
+}
+
+.page-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 430px;
+  min-height: calc(100vh - 96px);
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/* COMPACT TOPBAR FOR ANY PAGE THAT DOES NOT HAVE ITS OWN HERO */
+
+.topbar {
+  position: relative;
+  z-index: 800;
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  padding-top: 8px;
+  overflow: visible;
+}
+
+.topbar-inner {
+  position: relative;
+  min-height: 78px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  color: #ffffff;
+  border-radius: 0 0 26px 26px;
+  overflow: visible;
+  background:
+    radial-gradient(circle at 85% 0%, rgba(34, 197, 94, 0.26), transparent 34%),
+    linear-gradient(135deg, #06101f 0%, #071827 55%, #073821 100%);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+}
+
+.brand-wrap {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  color: #ffffff;
+}
+
+.brand-block {
+  min-width: 0;
+  display: block;
+}
+
+.logo {
+  display: block;
+  margin: 0;
+  color: #ffffff;
+  font-size: 17px;
+  line-height: 1.06;
+  font-weight: 950;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand-subtitle {
+  display: block;
+  margin: 5px 0 0;
+  color: rgba(226, 232, 240, 0.8);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.settings-wrap,
+.topbar-actions {
+  position: relative;
+  z-index: 120;
+  display: flex;
+  justify-content: flex-end;
+  overflow: visible;
+}
+
+/* SVG ICON SYSTEM */
+
+.app-svg-icon {
+  width: 1em;
+  height: 1em;
+  display: block;
+  color: currentColor;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.app-nav-svg {
+  font-size: 24px;
+}
+
+.bottom-nav-icon .app-svg-icon {
+  font-size: 25px;
+}
+
+/* SETTINGS DROPDOWN */
+
+.settings-dropdown,
+.profile-dropdown,
+.topbar-menu-right {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  left: auto;
+  z-index: 999999;
+  width: min(342px, calc(100vw - 24px));
+  max-height: calc(100vh - 118px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.985);
+  border: 1px solid rgba(226, 232, 240, 0.96);
+  box-shadow: 0 24px 58px rgba(15, 23, 42, 0.22);
+  color: var(--app-text);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.settings-profile-head,
+.profile-dropdown-head,
+.premium-profile-head {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 15px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(34, 197, 94, 0.14), transparent 34%),
+    linear-gradient(135deg, #f8fafc, #ffffff);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.settings-avatar,
+.profile-avatar-large,
+.premium-profile-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0f172a, #15803d);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.settings-profile-head strong,
+.profile-name,
+.premium-profile-head strong {
+  display: block;
+  color: var(--app-text);
+  font-size: 15px;
+  line-height: 1.16;
+  font-weight: 950;
+}
+
+.settings-profile-head small,
+.profile-email,
+.premium-profile-head span {
+  display: block;
+  margin-top: 4px;
+  color: var(--app-muted);
+  font-size: 12px;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.settings-menu-list,
+.profile-menu-list,
+.premium-profile-actions {
+  display: grid;
+  gap: 4px;
+  padding: 9px;
+}
+
+.settings-menu-item,
+.profile-menu-item,
+.premium-profile-actions button {
+  width: 100%;
+  min-height: 58px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--app-text);
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 14px;
+  gap: 11px;
+  align-items: center;
+  padding: 10px 11px;
+  text-align: left;
+}
+
+.premium-profile-actions button {
+  grid-template-columns: 34px minmax(0, 1fr);
+}
+
+.settings-menu-item:hover,
+.profile-menu-item:hover,
+.premium-profile-actions button:hover {
+  background: #f8fafc;
+}
+
+.settings-menu-item span,
+.profile-menu-item span,
+.premium-profile-actions button > span {
+  width: 34px;
+  height: 34px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: #ecfdf3;
+  color: #15803d;
+  font-weight: 950;
+}
+
+.settings-menu-item strong,
+.profile-menu-item strong,
+.premium-profile-actions strong {
+  display: block;
+  color: var(--app-text);
+  font-size: 14px;
+  line-height: 1.16;
+  font-weight: 950;
+}
+
+.settings-menu-item small,
+.profile-menu-item small,
+.premium-profile-actions small {
+  display: block;
+  margin-top: 3px;
+  color: var(--app-muted);
+  font-size: 11px;
+  line-height: 1.28;
+}
+
+.settings-menu-item em {
+  color: #94a3b8;
+  font-size: 20px;
+  font-style: normal;
+  line-height: 1;
+}
+
+.settings-menu-item.danger span,
+.profile-menu-item.danger-item span,
+.premium-profile-actions button.danger > span {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.settings-menu-item.danger strong,
+.settings-menu-item.danger em,
+.profile-menu-item.danger-item strong,
+.profile-menu-item.danger-item span,
+.premium-profile-actions button.danger strong {
+  color: #dc2626;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 8px !important;
+  transform: translateX(-50%) !important;
+  z-index: 1000 !important;
+  width: min(430px, calc(100vw - 20px)) !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+  padding: 9px 10px calc(9px + env(safe-area-inset-bottom)) !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at 22% 0%, rgba(34, 197, 94, 0.13), transparent 26%),
+    linear-gradient(180deg, #07192b 0%, #06101d 100%) !important;
+  border: 1px solid rgba(148, 163, 184, 0.13) !important;
+  box-shadow:
+    0 -16px 40px rgba(15, 23, 42, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+.bottom-nav-item {
+  position: relative !important;
+  min-width: 0 !important;
+  height: 64px !important;
+  border-radius: 22px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 6px 3px !important;
+  background: transparent !important;
+  color: rgba(226, 232, 240, 0.72) !important;
+  text-align: center !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+}
+
+.bottom-nav-item::before,
+.bottom-nav-item::after {
+  display: none !important;
+  content: none !important;
+}
+
+.bottom-nav-item.active {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(156, 255, 119, 0.28), transparent 36%),
+    linear-gradient(180deg, rgba(22, 101, 52, 0.68), rgba(12, 38, 30, 0.82)) !important;
+  color: #a6ff57 !important;
+  box-shadow:
+    0 0 0 1px rgba(163, 230, 53, 0.3),
+    0 12px 25px rgba(34, 197, 94, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09) !important;
+  transform: translateY(-1px) !important;
+}
+
+.bottom-nav-icon {
+  display: block !important;
+  color: currentColor !important;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.16));
+}
+
+.bottom-nav-label {
+  display: block !important;
+  margin: 0 !important;
+  font-size: 9.5px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* SAFE SHARED COMPONENT STYLES */
+
+.container {
+  width: 100%;
+  display: grid;
+  gap: 12px;
+  padding-bottom: 10px;
+  overflow: visible;
+}
+
+.footer-space {
+  height: 14px;
+}
+
+.hero {
+  display: grid;
+  gap: 12px;
+}
+
+.hero-card,
+.top-summary-card,
+.box,
+.stat-card,
+.mini-stat,
+.action-tile,
+.ring-card,
+.highlight-card,
+.settings-mini-card {
+  border-radius: var(--radius-lg, 24px);
+  background: var(--card, var(--app-card));
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-md, var(--app-shadow));
+  backdrop-filter: blur(10px);
+}
+
+.hero-card,
+.top-summary-card,
+.box,
+.stat-card,
+.ring-card,
+.highlight-card,
+.settings-mini-card {
+  padding: 16px;
+}
+
+.box {
+  position: relative;
+  overflow: visible;
+}
+
+.box-head,
+.section-head,
+.ring-card-head,
+.report-top-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.box-head p,
+.section-head p,
+.ring-card-head p {
+  margin: 4px 0 0;
+  color: var(--muted, var(--app-muted));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.box-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  color: var(--text, var(--app-text));
+}
+
+.grid-2,
+.grid-3,
+.grid-4,
+.section-grid,
+.insights-grid,
+.tiles-grid,
+.settings-grid,
+.rings-grid,
+.categories-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.insights-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-grid,
+.list-stack,
+.item-list,
+.categories-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.form-grid {
+  margin-top: 12px;
+}
+
+.form-row,
+.dual-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 7px;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.input-shell {
+  position: relative;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line, var(--app-line));
+  border-radius: 15px;
+  padding: 12px 13px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--text, var(--app-text));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted-2, #94a3b8);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(34, 197, 94, 0.55);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.12);
+}
+
+textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.section-link-btn,
+.secondary,
+.success,
+.full,
+.auth-submit,
+.tile-link,
+.icon-action-btn,
+.edit-btn,
+.danger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 14px;
+  font-weight: 850;
+}
+
+.section-link-btn {
+  padding: 7px 0;
+  background: transparent;
+  color: var(--primary, #15803d);
+}
+
+.secondary {
+  padding: 9px 13px;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.success {
+  padding: 11px 14px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.18);
+}
+
+.full,
+.auth-submit,
+.tile-link {
+  width: 100%;
+  padding: 13px 15px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.18);
+}
+
+.slim-btn {
+  padding: 8px 11px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.edit-btn {
+  padding: 9px 12px;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.danger-btn {
+  padding: 9px 12px;
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.danger-text {
+  color: #dc2626 !important;
+}
+
+.stat-card,
+.mini-stat {
+  padding: 14px;
+}
+
+.stat-label,
+.mini-stat-label {
+  color: var(--muted, var(--app-muted));
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 750;
+}
+
+.stat-number,
+.mini-stat-value {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  color: var(--text, var(--app-text));
+  word-break: break-word;
+}
+
+.stat-sub {
+  margin-top: 5px;
+  color: var(--muted, var(--app-muted));
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.item-list {
+  margin-top: 12px;
+  overflow: visible;
+}
+
+.item-card {
+  display: grid;
+  gap: 10px;
+  padding: 13px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border: 1px solid #edf2f7;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+.item-card-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.item-main,
+.item-meta,
+.record-meta {
+  min-width: 0;
+}
+
+.item-title,
+.record-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text, var(--app-text));
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.item-subtitle,
+.record-subtitle {
+  margin-top: 4px;
+  color: var(--muted, var(--app-muted));
+  font-size: 12px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.item-side {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.item-amount,
+.record-amount {
+  font-size: 16px;
+  font-weight: 950;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+.record-amount {
+  color: #dc2626;
+}
+
+.item-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.empty-state {
+  margin-top: 12px;
+  padding: 15px;
+  border-radius: 16px;
+  border: 1px dashed #d8e1ee;
+  background: #f8fbff;
+  text-align: center;
+  color: var(--muted, var(--app-muted));
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* AUTH */
+
+.auth-shell {
+  display: grid;
+  gap: 12px;
+  padding: 14px 0 24px;
+}
+
+.auth-panel,
+.auth-form-panel {
+  border-radius: var(--radius-lg, 24px);
+  background: var(--card, var(--app-card));
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-md, var(--app-shadow));
+  backdrop-filter: blur(10px);
+}
+
+.auth-panel {
+  padding: 16px;
+  overflow: hidden;
+}
+
+.auth-form-panel {
+  padding: 16px;
+}
+
+.auth-switch-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 6px;
+  border-radius: 16px;
+  background: #eff6ff;
+  margin-bottom: 14px;
+}
+
+.auth-switch-row:has(.auth-switch-btn:nth-child(2):last-child) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.auth-switch-btn {
+  min-height: 42px;
+  padding: 9px 10px;
+  border-radius: 13px;
+  background: transparent;
+  color: #1e3a8a;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.auth-switch-btn.active {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  box-shadow: 0 8px 16px rgba(22, 163, 74, 0.18);
+}
+
+.auth-form {
+  display: grid;
+  gap: 13px;
+}
+
+/* =========================================================
+   FINAL FARM UI FIX
+   One logo, one settings button, dropdown above cards, Home-like card overlap.
+   ========================================================= */
+
+/* Never clip dropdowns from page wrappers */
+.app-shell,
+.page-wrap,
+.container,
+.home-page,
+.expense-premium-page,
+.expenses-page,
+.expense-page,
+.worker-page-lite,
+.workers-page,
+.cashbook-page,
+.sales-page,
+.reports-page,
+.report-page {
+  overflow: visible !important;
+}
+
+/* Same official circular logo on every page */
+.app-brand-logo,
+.brand-mark,
+.home-brand-logo,
+.home-logo-orb,
+.home-brand-mark,
+.home-brand-mark-premium,
+.home-premium-brand-mark,
+.home-logo-mark,
+.worker-brand-mark-premium,
+.worker-brand-mark,
+.worker-premium-logo-mark,
+.reports-brand-mark,
+.report-brand-mark,
+.reports-premium-brand-mark,
+.reports-logo-mark,
+.expense-logo-orb,
+.expenses-logo-orb,
+.expense-brand-mark,
+.expenses-brand-mark,
+.expense-premium-brand-mark,
+.farm-premium-logo-mark,
+.cashbook-logo-orb,
+.cashbook-brand-mark,
+.cash-brand-mark,
+.cash-premium-brand-mark,
+.sales-logo-orb,
+.sales-brand-mark,
+.sales-premium-brand-mark,
+.farm-brand-mark,
+.farm-app-brand-mark,
+.premium-brand-mark {
+  width: var(--farm-brand-logo-size) !important;
+  height: var(--farm-brand-logo-size) !important;
+  min-width: var(--farm-brand-logo-size) !important;
+  max-width: var(--farm-brand-logo-size) !important;
+  aspect-ratio: 1 / 1 !important;
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(134, 239, 172, 0.42) !important;
+  outline: 0 !important;
+  background: #031423 !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  text-indent: -9999px !important;
+  box-shadow:
+    0 0 0 4px rgba(34, 197, 94, 0.08),
+    0 12px 26px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.app-brand-logo::before,
+.brand-mark::before,
+.home-brand-logo::before,
+.home-logo-orb::before,
+.home-brand-mark::before,
+.home-brand-mark-premium::before,
+.home-premium-brand-mark::before,
+.home-logo-mark::before,
+.worker-brand-mark-premium::before,
+.worker-brand-mark::before,
+.worker-premium-logo-mark::before,
+.reports-brand-mark::before,
+.report-brand-mark::before,
+.reports-premium-brand-mark::before,
+.reports-logo-mark::before,
+.expense-logo-orb::before,
+.expenses-logo-orb::before,
+.expense-brand-mark::before,
+.expenses-brand-mark::before,
+.expense-premium-brand-mark::before,
+.farm-premium-logo-mark::before,
+.cashbook-logo-orb::before,
+.cashbook-brand-mark::before,
+.cash-brand-mark::before,
+.cash-premium-brand-mark::before,
+.sales-logo-orb::before,
+.sales-brand-mark::before,
+.sales-premium-brand-mark::before,
+.farm-brand-mark::before,
+.farm-app-brand-mark::before,
+.premium-brand-mark::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  border-radius: inherit !important;
+  background-image: var(--farm-app-logo-url) !important;
+  background-size: 124% 124% !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+.app-brand-logo > *,
+.brand-mark > *,
+.home-brand-logo > *,
+.home-logo-orb > *,
+.home-brand-mark > *,
+.home-brand-mark-premium > *,
+.home-premium-brand-mark > *,
+.home-logo-mark > *,
+.worker-brand-mark-premium > *,
+.worker-brand-mark > *,
+.worker-premium-logo-mark > *,
+.reports-brand-mark > *,
+.report-brand-mark > *,
+.reports-premium-brand-mark > *,
+.reports-logo-mark > *,
+.expense-logo-orb > *,
+.expenses-logo-orb > *,
+.expense-brand-mark > *,
+.expenses-brand-mark > *,
+.expense-premium-brand-mark > *,
+.farm-premium-logo-mark > *,
+.cashbook-logo-orb > *,
+.cashbook-brand-mark > *,
+.cash-brand-mark > *,
+.cash-premium-brand-mark > *,
+.sales-logo-orb > *,
+.sales-brand-mark > *,
+.sales-premium-brand-mark > *,
+.farm-brand-mark > *,
+.farm-app-brand-mark > *,
+.premium-brand-mark > *,
+.app-brand-logo img {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Keep all brand rows aligned */
+.home-brand,
+.worker-premium-brand,
+.reports-brand,
+.expense-brand-left,
+.cashbook-brand-left,
+.sales-brand-left,
+.brand-wrap {
+  min-width: 0 !important;
+  align-items: center !important;
+}
+
+/* Same settings button and same gear on every page */
+.settings-trigger,
+.home-settings-btn,
+.home-settings-button,
+.worker-settings-button,
+.worker-top-icon-button.worker-settings-button,
+.reports-settings-button,
+.report-settings-button,
+.expense-settings-button,
+.expenses-settings-button,
+.cash-settings-button,
+.cashbook-settings-button,
+.sales-settings-button,
+button[aria-label="Open settings"],
+button[aria-label="Settings"],
+button[aria-label="Open settings menu"] {
+  width: var(--farm-settings-size) !important;
+  height: var(--farm-settings-size) !important;
+  min-width: var(--farm-settings-size) !important;
+  max-width: var(--farm-settings-size) !important;
+  padding: 0 !important;
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border-radius: 19px !important;
+  border: 1px solid rgba(226, 232, 240, 0.18) !important;
+  background: rgba(15, 23, 42, 0.68) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 14px 28px rgba(15, 23, 42, 0.24) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+.settings-trigger > *,
+.home-settings-btn > *,
+.home-settings-button > *,
+.worker-settings-button > *,
+.worker-top-icon-button.worker-settings-button > *,
+.reports-settings-button > *,
+.report-settings-button > *,
+.expense-settings-button > *,
+.expenses-settings-button > *,
+.cash-settings-button > *,
+.cashbook-settings-button > *,
+.sales-settings-button > *,
+button[aria-label="Open settings"] > *,
+button[aria-label="Settings"] > *,
+button[aria-label="Open settings menu"] > * {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.settings-trigger::before,
+.home-settings-btn::before,
+.home-settings-button::before,
+.worker-settings-button::before,
+.worker-top-icon-button.worker-settings-button::before,
+.reports-settings-button::before,
+.report-settings-button::before,
+.expense-settings-button::before,
+.expenses-settings-button::before,
+.cash-settings-button::before,
+.cashbook-settings-button::before,
+.sales-settings-button::before,
+button[aria-label="Open settings"]::before,
+button[aria-label="Settings"]::before,
+button[aria-label="Open settings menu"]::before {
+  content: "" !important;
+  width: 25px !important;
+  height: 25px !important;
+  position: relative !important;
+  z-index: 2 !important;
+  display: block !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.4a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z'/%3E%3Cpath d='M18.8 13.4c.1-.5.2-.9.2-1.4s-.1-.9-.2-1.4l2-1.5-2-3.4-2.4 1a8 8 0 0 0-2.4-1.4L13.6 2h-3.2L10 5.3a8 8 0 0 0-2.4 1.4l-2.4-1-2 3.4 2 1.5C5.1 11.1 5 11.5 5 12s.1.9.2 1.4l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 2.4 1.4l.4 3.3h3.2l.4-3.3a8 8 0 0 0 2.4-1.4l2.4 1 2-3.4-2-1.5Z'/%3E%3C/svg%3E") !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Hero image/header layer: visible dropdown, rounded image */
+.home-farm-banner,
+.home-hero-stack,
+.expense-farm-header,
+.expenses-farm-header,
+.expense-hero,
+.expenses-hero,
+.worker-premium-hero,
+.worker-farm-header,
+.workers-farm-header,
+.reports-hero,
+.report-hero,
+.reports-farm-header,
+.report-farm-header,
+.cashbook-farm-header,
+.sales-farm-header {
+  position: relative !important;
+  z-index: 20 !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: var(--farm-header-radius) !important;
+}
+
+/* Keep image/overlay layers rounded */
+.home-farm-banner::before,
+.home-farm-banner::after,
+.expense-header-image,
+.expense-header-shade,
+.expense-header-glow,
+.reports-hero-bg,
+.reports-hero-overlay,
+.cashbook-header-image,
+.cashbook-header-shade,
+.sales-header-image,
+.sales-header-shade {
+  border-radius: var(--farm-header-radius) !important;
+}
+
+/* Top header row above image */
+.home-hero-top,
+.expense-brand-row,
+.worker-premium-topbar,
+.reports-top-row,
+.cashbook-brand-row,
+.sales-brand-row,
+.topbar,
+.topbar-inner {
+  position: relative !important;
+  z-index: 80 !important;
+  overflow: visible !important;
+}
+
+.home-settings-wrap,
+.expense-settings-wrap,
+.expenses-settings-wrap,
+.worker-settings-wrap,
+.reports-settings-wrap,
+.cashbook-menu-wrap,
+.cashbook-settings-wrap,
+.sales-menu-wrap,
+.sales-settings-wrap,
+.settings-wrap,
+.topbar-actions,
+[class*="settings-wrap"],
+[class*="menu-wrap"] {
+  position: relative !important;
+  z-index: 120 !important;
+  overflow: visible !important;
+  flex-shrink: 0 !important;
+}
+
+/* Dropdown below settings button and above cards */
+.profile-dropdown,
+.settings-dropdown,
+.topbar-menu-right,
+.home-profile-dropdown,
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.expenses-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.report-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown {
+  position: absolute !important;
+  top: calc(100% + 12px) !important;
+  right: 0 !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: min(340px, calc(100vw - 22px)) !important;
+  max-width: min(340px, calc(100vw - 22px)) !important;
+  max-height: calc(100vh - 112px) !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  z-index: 999999 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.28) !important;
+}
+
+/* Cards stay below dropdown */
+.home-balance-card,
+.home-current-card,
+.home-summary-card,
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.worker-overview-card,
+.worker-summary-card-lite,
+.cashbook-balance-card,
+.sales-summary-card,
+.reports-summary-card,
+.report-summary-card,
+.reports-overview-card,
+.report-overview-card,
+[class*="overview-card"],
+[class*="summary-card"],
+[class*="balance-card"] {
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+/* Home-like card bump under hero */
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.worker-overview-card,
+.worker-summary-card-lite,
+.cashbook-balance-card,
+.sales-summary-card,
+.reports-summary-card,
+.report-summary-card {
+  margin-top: -30px !important;
+}
+
+/* Content panels under first card */
+.expense-panel,
+.expenses-panel,
+.worker-panel,
+.cashbook-panel,
+.sales-panel,
+.reports-panel,
+.report-panel {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* Reports graph lines must stay visible */
+.reports-graph-box {
+  position: relative !important;
+  z-index: 4 !important;
+  overflow: hidden !important;
+}
+
+.reports-graph-scroll {
+  width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+.reports-graph-canvas {
+  position: relative !important;
+  min-height: 176px !important;
+}
+
+.reports-graph {
+  width: 100% !important;
+  height: 138px !important;
+  display: block !important;
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.reports-graph line,
+.reports-graph polyline {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  vector-effect: non-scaling-stroke !important;
+}
+
+.reports-graph .grid {
+  fill: none !important;
+  stroke: rgba(255, 255, 255, 0.18) !important;
+  stroke-width: 1 !important;
+  stroke-dasharray: 4 5 !important;
+}
+
+.reports-graph .axis {
+  fill: none !important;
+  stroke: rgba(255, 255, 255, 0.26) !important;
+  stroke-width: 1.2 !important;
+}
+
+.reports-graph .income-line {
+  fill: none !important;
+  stroke: #9eff4e !important;
+  stroke-width: 3.2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph .spent-line {
+  fill: none !important;
+  stroke: #60a5fa !important;
+  stroke-width: 3.2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph .expense-line {
+  fill: none !important;
+  stroke: #f87171 !important;
+  stroke-width: 3 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph .worker-line {
+  fill: none !important;
+  stroke: #c084fc !important;
+  stroke-width: 3 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph .cashout-line {
+  fill: none !important;
+  stroke: #fbbf24 !important;
+  stroke-width: 3 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph-click-layer {
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+
+.reports-graph-click-layer svg,
+.reports-graph-click-layer polyline {
+  display: none !important;
+}
+
+.reports-graph-dot-button {
+  z-index: 6 !important;
+  pointer-events: auto !important;
+}
+
+.reports-chart-tooltip,
+.reports-chart-guide {
+  z-index: 8 !important;
+}
+
+@media (min-width: 760px) {
+  .topbar,
+  .page-wrap {
+    max-width: 430px;
+  }
+
+  .bottom-nav {
+    width: min(430px, calc(100vw - 20px)) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  :root {
+    --farm-brand-logo-size: 46px;
+    --farm-settings-size: 46px;
+  }
+
+  .app-shell {
+    padding-left: 6px;
+    padding-right: 6px;
+    padding-bottom: calc(106px + env(safe-area-inset-bottom));
+  }
+
+  .topbar {
+    max-width: 100%;
+  }
+
+  .topbar-inner {
+    min-height: 74px;
+    border-radius: 0 0 24px 24px;
+  }
+
+  .brand-wrap {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .logo {
+    font-size: 15px;
+  }
+
+  .brand-subtitle {
+    font-size: 10px;
+  }
+
+  .settings-dropdown,
+  .profile-dropdown,
+  .topbar-menu-right,
+  .home-profile-dropdown,
+  .home-settings-dropdown,
+  .premium-profile-dropdown,
+  .expense-profile-dropdown,
+  .expenses-profile-dropdown,
+  .worker-profile-dropdown,
+  .workers-profile-dropdown,
+  .reports-profile-dropdown,
+  .report-profile-dropdown,
+  .cashbook-profile-dropdown,
+  .sales-profile-dropdown {
+    width: min(326px, calc(100vw - 18px)) !important;
+    max-width: min(326px, calc(100vw - 18px)) !important;
+    right: 0 !important;
+  }
+
+  .grid-2,
+  .insights-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bottom-nav {
+    bottom: 7px !important;
+    width: calc(100vw - 18px) !important;
+    border-radius: 25px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .bottom-nav-item {
+    height: 60px !important;
+    border-radius: 20px !important;
+  }
+
+  .bottom-nav-icon .app-svg-icon {
+    font-size: 22px;
+  }
+
+  .bottom-nav-label {
+    font-size: 9.5px !important;
+  }
+
+  .expense-summary-card,
+  .expenses-summary-card,
+  .expense-total-card,
+  .expense-overview-card,
+  .worker-overview-card,
+  .worker-summary-card-lite,
+  .cashbook-balance-card,
+  .sales-summary-card,
+  .reports-summary-card,
+  .report-summary-card {
+    margin-top: -28px !important;
+  }
+}
+/* =========================================================
+   FINAL OVERRIDE — SAME LOGO + SAME SETTINGS MENU EVERY PAGE
+   Paste at the very bottom of App.css.
+   Do not import shared-ui.css after App.css.
+   ========================================================= */
+
+:root {
+  --final-logo-size: 50px;
+  --final-settings-size: 50px;
+}
+
+/* ---------- SAME REAL LOGO IMAGE EVERYWHERE ---------- */
+
+.app-brand-logo,
+.brand-mark,
+.home-brand-logo,
+.home-logo-orb,
+.home-brand-mark,
+.home-brand-mark-premium,
+.home-premium-brand-mark,
+.home-logo-mark,
+.worker-brand-mark-premium,
+.worker-brand-mark,
+.worker-premium-logo-mark,
+.reports-brand-mark,
+.report-brand-mark,
+.reports-premium-brand-mark,
+.reports-logo-mark,
+.expense-logo-orb,
+.expenses-logo-orb,
+.expense-brand-mark,
+.expenses-brand-mark,
+.expense-premium-brand-mark,
+.farm-premium-logo-mark,
+.cashbook-logo-orb,
+.cashbook-brand-mark,
+.cash-brand-mark,
+.cash-premium-brand-mark,
+.sales-logo-orb,
+.sales-brand-mark,
+.sales-premium-brand-mark,
+.farm-brand-mark,
+.farm-app-brand-mark,
+.premium-brand-mark {
+  width: var(--final-logo-size) !important;
+  height: var(--final-logo-size) !important;
+  min-width: var(--final-logo-size) !important;
+  max-width: var(--final-logo-size) !important;
+  aspect-ratio: 1 / 1 !important;
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #031423 !important;
+  border: 1px solid rgba(74, 222, 128, 0.42) !important;
+  outline: 0 !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  text-indent: -9999px !important;
+  box-shadow:
+    0 0 0 4px rgba(34, 197, 94, 0.08),
+    0 12px 24px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+.app-brand-logo::before,
+.brand-mark::before,
+.home-brand-logo::before,
+.home-logo-orb::before,
+.home-brand-mark::before,
+.home-brand-mark-premium::before,
+.home-premium-brand-mark::before,
+.home-logo-mark::before,
+.worker-brand-mark-premium::before,
+.worker-brand-mark::before,
+.worker-premium-logo-mark::before,
+.reports-brand-mark::before,
+.report-brand-mark::before,
+.reports-premium-brand-mark::before,
+.reports-logo-mark::before,
+.expense-logo-orb::before,
+.expenses-logo-orb::before,
+.expense-brand-mark::before,
+.expenses-brand-mark::before,
+.expense-premium-brand-mark::before,
+.farm-premium-logo-mark::before,
+.cashbook-logo-orb::before,
+.cashbook-brand-mark::before,
+.cash-brand-mark::before,
+.cash-premium-brand-mark::before,
+.sales-logo-orb::before,
+.sales-brand-mark::before,
+.sales-premium-brand-mark::before,
+.farm-brand-mark::before,
+.farm-app-brand-mark::before,
+.premium-brand-mark::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  border-radius: inherit !important;
+  background-image: var(--farm-app-logo-url) !important;
+  background-size: 124% 124% !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+.app-brand-logo > *,
+.brand-mark > *,
+.home-brand-logo > *,
+.home-logo-orb > *,
+.home-brand-mark > *,
+.home-brand-mark-premium > *,
+.home-premium-brand-mark > *,
+.home-logo-mark > *,
+.worker-brand-mark-premium > *,
+.worker-brand-mark > *,
+.worker-premium-logo-mark > *,
+.reports-brand-mark > *,
+.report-brand-mark > *,
+.reports-premium-brand-mark > *,
+.reports-logo-mark > *,
+.expense-logo-orb > *,
+.expenses-logo-orb > *,
+.expense-brand-mark > *,
+.expenses-brand-mark > *,
+.expense-premium-brand-mark > *,
+.farm-premium-logo-mark > *,
+.cashbook-logo-orb > *,
+.cashbook-brand-mark > *,
+.cash-brand-mark > *,
+.cash-premium-brand-mark > *,
+.sales-logo-orb > *,
+.sales-brand-mark > *,
+.sales-premium-brand-mark > *,
+.farm-brand-mark > *,
+.farm-app-brand-mark > *,
+.premium-brand-mark > *,
+.app-brand-logo img {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* If any page directly uses img inside its logo, still force same crop */
+.expense-logo-orb img,
+.expenses-logo-orb img,
+.cashbook-logo-orb img,
+.sales-logo-orb img,
+.worker-brand-mark-premium img,
+.reports-brand-mark img {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* ---------- SAME SETTINGS BUTTON EVERYWHERE ---------- */
+
+.settings-trigger,
+.home-settings-btn,
+.home-settings-button,
+.worker-settings-button,
+.worker-top-icon-button,
+.worker-top-icon-button.worker-settings-button,
+.reports-settings-button,
+.report-settings-button,
+.expense-settings-button,
+.expenses-settings-button,
+.cash-settings-button,
+.cashbook-settings-button,
+.sales-settings-button,
+button[aria-label="Open settings"],
+button[aria-label="Settings"],
+button[aria-label="Open settings menu"] {
+  width: var(--final-settings-size) !important;
+  height: var(--final-settings-size) !important;
+  min-width: var(--final-settings-size) !important;
+  max-width: var(--final-settings-size) !important;
+  border-radius: 19px !important;
+  border: 1px solid rgba(226, 232, 240, 0.22) !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background: rgba(15, 23, 42, 0.66) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 14px 28px rgba(15, 23, 42, 0.24) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+.settings-trigger > *,
+.home-settings-btn > *,
+.home-settings-button > *,
+.worker-settings-button > *,
+.worker-top-icon-button > *,
+.worker-top-icon-button.worker-settings-button > *,
+.reports-settings-button > *,
+.report-settings-button > *,
+.expense-settings-button > *,
+.expenses-settings-button > *,
+.cash-settings-button > *,
+.cashbook-settings-button > *,
+.sales-settings-button > *,
+button[aria-label="Open settings"] > *,
+button[aria-label="Settings"] > *,
+button[aria-label="Open settings menu"] > * {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.settings-trigger::before,
+.home-settings-btn::before,
+.home-settings-button::before,
+.worker-settings-button::before,
+.worker-top-icon-button::before,
+.worker-top-icon-button.worker-settings-button::before,
+.reports-settings-button::before,
+.report-settings-button::before,
+.expense-settings-button::before,
+.expenses-settings-button::before,
+.cash-settings-button::before,
+.cashbook-settings-button::before,
+.sales-settings-button::before,
+button[aria-label="Open settings"]::before,
+button[aria-label="Settings"]::before,
+button[aria-label="Open settings menu"]::before {
+  content: "" !important;
+  width: 24px !important;
+  height: 24px !important;
+  display: block !important;
+  position: relative !important;
+  z-index: 3 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.4a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z'/%3E%3Cpath d='M18.8 13.4c.1-.5.2-.9.2-1.4s-.1-.9-.2-1.4l2-1.5-2-3.4-2.4 1a8 8 0 0 0-2.4-1.4L13.6 2h-3.2L10 5.3a8 8 0 0 0-2.4 1.4l-2.4-1-2 3.4 2 1.5C5.1 11.1 5 11.5 5 12s.1.9.2 1.4l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 2.4 1.4l.4 3.3h3.2l.4-3.3a8 8 0 0 0 2.4-1.4l2.4 1 2-3.4-2-1.5Z'/%3E%3C/svg%3E") !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* ---------- HEADER ROW ALIGNMENT ---------- */
+
+.home-hero-top,
+.worker-premium-topbar,
+.expense-brand-row,
+.expenses-brand-row,
+.reports-top-row,
+.cashbook-brand-row,
+.sales-brand-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  position: relative !important;
+  z-index: 120 !important;
+  overflow: visible !important;
+}
+
+.home-brand,
+.worker-premium-brand,
+.reports-brand,
+.expense-brand-left,
+.expenses-brand-left,
+.cashbook-brand-left,
+.sales-brand-left,
+.brand-wrap {
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+/* ---------- SETTINGS WRAPPER ---------- */
+
+.home-settings-wrap,
+.worker-settings-wrap,
+.expense-settings-wrap,
+.expenses-settings-wrap,
+.reports-settings-wrap,
+.cashbook-menu-wrap,
+.cashbook-settings-wrap,
+.sales-menu-wrap,
+.sales-settings-wrap,
+.settings-wrap,
+.topbar-actions,
+[class*="settings-wrap"],
+[class*="menu-wrap"] {
+  position: relative !important;
+  z-index: 300 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-shrink: 0 !important;
+  overflow: visible !important;
+}
+
+/* ---------- COMPACT RIGHT-SIDE SETTINGS DROPDOWN EVERYWHERE ---------- */
+
+.profile-dropdown,
+.settings-dropdown,
+.topbar-menu-right,
+.home-profile-dropdown,
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.expenses-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.report-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown,
+[class*="profile-dropdown"],
+[class*="settings-dropdown"] {
+  position: absolute !important;
+  top: calc(100% + 9px) !important;
+  right: 0 !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+
+  width: min(286px, calc(100vw - 22px)) !important;
+  max-width: min(286px, calc(100vw - 22px)) !important;
+  min-width: 0 !important;
+  max-height: calc(100vh - 112px) !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  z-index: 999999 !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.985) !important;
+  border: 1px solid rgba(226, 232, 240, 0.96) !important;
+  box-shadow: 0 22px 52px rgba(15, 23, 42, 0.24) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* Compact dropdown head */
+.profile-dropdown-head,
+.settings-profile-head,
+.premium-profile-head {
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  padding: 12px !important;
+}
+
+.profile-avatar-large,
+.settings-avatar,
+.premium-profile-avatar {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  font-size: 14px !important;
+}
+
+.profile-name,
+.settings-profile-head strong,
+.premium-profile-head strong {
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+}
+
+.profile-email,
+.settings-profile-head small,
+.premium-profile-head span {
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+}
+
+/* Compact dropdown items */
+.profile-menu-list,
+.settings-menu-list,
+.premium-profile-actions {
+  padding: 7px !important;
+  gap: 3px !important;
+}
+
+.profile-menu-item,
+.settings-menu-item,
+.premium-profile-actions button {
+  min-height: 50px !important;
+  padding: 8px 9px !important;
+  border-radius: 14px !important;
+  grid-template-columns: 30px minmax(0, 1fr) 10px !important;
+  gap: 9px !important;
+}
+
+.premium-profile-actions button {
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+}
+
+.profile-menu-item span,
+.settings-menu-item span,
+.premium-profile-actions button > span {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  border-radius: 11px !important;
+  font-size: 15px !important;
+}
+
+.profile-menu-item strong,
+.settings-menu-item strong,
+.premium-profile-actions strong {
+  font-size: 13px !important;
+  line-height: 1.15 !important;
+}
+
+.profile-menu-item small,
+.settings-menu-item small,
+.premium-profile-actions small {
+  font-size: 10.5px !important;
+  line-height: 1.25 !important;
+}
+
+/* ---------- HERO SHAPE: NO SHARP LIGHT CORNER ---------- */
+
+.home-farm-banner,
+.worker-premium-hero,
+.expense-farm-header,
+.expenses-farm-header,
+.reports-hero,
+.cashbook-farm-header,
+.sales-farm-header {
+  position: relative !important;
+  z-index: 20 !important;
+  border-radius: 0 0 30px 30px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background-clip: padding-box !important;
+}
+
+/* Clip only hero background/image area */
+.worker-premium-hero,
+.home-farm-banner,
+.expense-farm-header,
+.expenses-farm-header,
+.reports-hero,
+.cashbook-farm-header,
+.sales-farm-header {
+  overflow: hidden !important;
+}
+
+/* But keep top row and settings clickable */
+.home-hero-top,
+.worker-premium-topbar,
+.expense-brand-row,
+.expenses-brand-row,
+.reports-top-row,
+.cashbook-brand-row,
+.sales-brand-row {
+  overflow: visible !important;
+}
+
+/* Rounded image layers */
+.expense-header-image,
+.expense-header-shade,
+.reports-hero-bg,
+.reports-hero-overlay,
+.cashbook-header-image,
+.cashbook-header-shade,
+.sales-header-image,
+.sales-header-shade {
+  border-radius: 0 0 30px 30px !important;
+}
+
+/* ---------- FIRST CARD OVERLAP EQUAL ON ALL PAGES ---------- */
+
+.home-current-card,
+.home-balance-card,
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.worker-overview-card,
+.worker-summary-card-lite,
+.cashbook-balance-card,
+.sales-summary-card,
+.reports-summary-card,
+.report-summary-card,
+.reports-overview-card,
+.report-overview-card {
+  position: relative !important;
+  z-index: 30 !important;
+  margin-top: -34px !important;
+}
+
+/* Keep dropdown above all cards */
+.home-current-card,
+.home-balance-card,
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.worker-overview-card,
+.worker-summary-card-lite,
+.cashbook-balance-card,
+.sales-summary-card,
+.reports-summary-card,
+.report-summary-card,
+.reports-overview-card,
+.report-overview-card,
+[class*="overview-card"],
+[class*="summary-card"],
+[class*="balance-card"] {
+  z-index: 30 !important;
+}
+
+.profile-dropdown,
+.settings-dropdown,
+.topbar-menu-right,
+.home-profile-dropdown,
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.expenses-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.report-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown,
+[class*="profile-dropdown"],
+[class*="settings-dropdown"] {
+  z-index: 999999 !important;
+}
+
+/* ---------- REPORT GRAPH LINE VISIBILITY ---------- */
+
+.reports-graph,
+.reports-graph svg {
+  display: block !important;
+  overflow: visible !important;
+}
+
+.reports-graph line,
+.reports-graph polyline,
+.reports-graph path {
+  opacity: 1 !important;
+  visibility: visible !important;
+  vector-effect: non-scaling-stroke !important;
+}
+
+.reports-graph .grid {
+  fill: none !important;
+  stroke: rgba(255, 255, 255, 0.18) !important;
+  stroke-width: 1 !important;
+  stroke-dasharray: 4 5 !important;
+}
+
+.reports-graph .axis {
+  fill: none !important;
+  stroke: rgba(255, 255, 255, 0.28) !important;
+  stroke-width: 1.2 !important;
+}
+
+.reports-graph .income-line {
+  fill: none !important;
+  stroke: #9eff4e !important;
+  stroke-width: 3.2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph .spent-line {
+  fill: none !important;
+  stroke: #60a5fa !important;
+  stroke-width: 3.2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph .expense-line {
+  fill: none !important;
+  stroke: #f87171 !important;
+  stroke-width: 3 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph .worker-line {
+  fill: none !important;
+  stroke: #c084fc !important;
+  stroke-width: 3 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+.reports-graph .cashout-line {
+  fill: none !important;
+  stroke: #fbbf24 !important;
+  stroke-width: 3 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 430px) {
+  :root {
+    --final-logo-size: 46px;
+    --final-settings-size: 46px;
+  }
+
+  .profile-dropdown,
+  .settings-dropdown,
+  .topbar-menu-right,
+  .home-profile-dropdown,
+  .home-settings-dropdown,
+  .premium-profile-dropdown,
+  .expense-profile-dropdown,
+  .expenses-profile-dropdown,
+  .worker-profile-dropdown,
+  .workers-profile-dropdown,
+  .reports-profile-dropdown,
+  .report-profile-dropdown,
+  .cashbook-profile-dropdown,
+  .sales-profile-dropdown,
+  [class*="profile-dropdown"],
+  [class*="settings-dropdown"] {
+    width: min(274px, calc(100vw - 18px)) !important;
+    max-width: min(274px, calc(100vw - 18px)) !important;
+    right: 0 !important;
+  }
+
+  .home-current-card,
+  .home-balance-card,
+  .expense-summary-card,
+  .expenses-summary-card,
+  .expense-total-card,
+  .expense-overview-card,
+  .worker-overview-card,
+  .worker-summary-card-lite,
+  .cashbook-balance-card,
+  .sales-summary-card,
+  .reports-summary-card,
+  .report-summary-card,
+  .reports-overview-card,
+  .report-overview-card {
+    margin-top: -32px !important;
+  }
+}/* =========================================================
+   FINAL ONLY-3-FIX PATCH
+   1) Settings gear centered
+   2) Dropdown in front, right side, compact
+   3) Small gap for Expense/Cashbook/Sales/Reports first card
+   ========================================================= */
+
+/* 1) SETTINGS BUTTON + ICON CENTER FIX */
+.settings-trigger,
+.home-settings-btn,
+.home-settings-button,
+.worker-settings-button,
+.worker-top-icon-button,
+.worker-top-icon-button.worker-settings-button,
+.reports-settings-button,
+.report-settings-button,
+.expense-settings-button,
+.expenses-settings-button,
+.cashbook-settings-button,
+.sales-settings-button,
+button[aria-label="Open settings"],
+button[aria-label="Settings"],
+button[aria-label="Open settings menu"] {
+  width: 46px !important;
+  height: 46px !important;
+  min-width: 46px !important;
+  max-width: 46px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  align-items: center !important;
+  justify-items: center !important;
+  align-self: center !important;
+  border-radius: 18px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Hide different old icons */
+.settings-trigger > *,
+.home-settings-btn > *,
+.home-settings-button > *,
+.worker-settings-button > *,
+.worker-top-icon-button > *,
+.worker-top-icon-button.worker-settings-button > *,
+.reports-settings-button > *,
+.report-settings-button > *,
+.expense-settings-button > *,
+.expenses-settings-button > *,
+.cashbook-settings-button > *,
+.sales-settings-button > *,
+button[aria-label="Open settings"] > *,
+button[aria-label="Settings"] > *,
+button[aria-label="Open settings menu"] > * {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Draw one centered gear */
+.settings-trigger::before,
+.home-settings-btn::before,
+.home-settings-button::before,
+.worker-settings-button::before,
+.worker-top-icon-button::before,
+.worker-top-icon-button.worker-settings-button::before,
+.reports-settings-button::before,
+.report-settings-button::before,
+.expense-settings-button::before,
+.expenses-settings-button::before,
+.cashbook-settings-button::before,
+.sales-settings-button::before,
+button[aria-label="Open settings"]::before,
+button[aria-label="Settings"]::before,
+button[aria-label="Open settings menu"]::before {
+  content: "" !important;
+  width: 24px !important;
+  height: 24px !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  z-index: 5 !important;
+  transform: translate(-50%, -50%) !important;
+  display: block !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.4a3.4 3.4 0 1 0 0-6.8 3.4 3.4 0 0 0 0 6.8Z'/%3E%3Cpath d='M18.8 13.4c.1-.5.2-.9.2-1.4s-.1-.9-.2-1.4l2-1.5-2-3.4-2.4 1a8 8 0 0 0-2.4-1.4L13.6 2h-3.2L10 5.3a8 8 0 0 0-2.4 1.4l-2.4-1-2 3.4 2 1.5C5.1 11.1 5 11.5 5 12s.1.9.2 1.4l-2 1.5 2 3.4 2.4-1a8 8 0 0 0 2.4 1.4l.4 3.3h3.2l.4-3.3a8 8 0 0 0 2.4-1.4l2.4 1 2-3.4-2-1.5Z'/%3E%3C/svg%3E") !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Keep settings button vertically centered in every page header row */
+.home-hero-top,
+.worker-premium-topbar,
+.expense-brand-row,
+.expenses-brand-row,
+.reports-top-row,
+.cashbook-brand-row,
+.sales-brand-row {
+  align-items: center !important;
+}
+
+.home-settings-wrap,
+.worker-settings-wrap,
+.expense-settings-wrap,
+.expenses-settings-wrap,
+.reports-settings-wrap,
+.cashbook-menu-wrap,
+.cashbook-settings-wrap,
+.sales-menu-wrap,
+.sales-settings-wrap,
+.settings-wrap,
+.topbar-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  align-self: center !important;
+  flex-shrink: 0 !important;
+}
+
+/* 2) DROPDOWN FRONT + RIGHT SIDE COMPACT FIX */
+.profile-dropdown,
+.settings-dropdown,
+.topbar-menu-right,
+.home-profile-dropdown,
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.expenses-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.report-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown,
+[class*="profile-dropdown"],
+[class*="settings-dropdown"] {
+  position: fixed !important;
+  top: 74px !important;
+  right: max(10px, calc((100vw - 430px) / 2 + 10px)) !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+
+  width: min(278px, calc(100vw - 20px)) !important;
+  max-width: min(278px, calc(100vw - 20px)) !important;
+  min-width: 0 !important;
+  max-height: calc(100vh - 92px) !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  z-index: 2147483647 !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.985) !important;
+  border: 1px solid rgba(226, 232, 240, 0.96) !important;
+  box-shadow: 0 24px 58px rgba(15, 23, 42, 0.28) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* Compact dropdown content */
+.profile-dropdown-head,
+.settings-profile-head,
+.premium-profile-head {
+  grid-template-columns: 40px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  padding: 11px !important;
+}
+
+.profile-avatar-large,
+.settings-avatar,
+.premium-profile-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  font-size: 13px !important;
+}
+
+.profile-menu-list,
+.settings-menu-list,
+.premium-profile-actions {
+  padding: 7px !important;
+  gap: 3px !important;
+}
+
+.profile-menu-item,
+.settings-menu-item,
+.premium-profile-actions button {
+  min-height: 48px !important;
+  padding: 8px 9px !important;
+  border-radius: 14px !important;
+  grid-template-columns: 30px minmax(0, 1fr) 10px !important;
+  gap: 9px !important;
+}
+
+.premium-profile-actions button {
+  grid-template-columns: 30px minmax(0, 1fr) !important;
+}
+
+.profile-menu-item span,
+.settings-menu-item span,
+.premium-profile-actions button > span {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  border-radius: 11px !important;
+  font-size: 15px !important;
+}
+
+.profile-menu-item strong,
+.settings-menu-item strong,
+.premium-profile-actions strong,
+.profile-name,
+.settings-profile-head strong,
+.premium-profile-head strong {
+  font-size: 13px !important;
+  line-height: 1.15 !important;
+}
+
+.profile-menu-item small,
+.settings-menu-item small,
+.premium-profile-actions small,
+.profile-email,
+.settings-profile-head small,
+.premium-profile-head span {
+  font-size: 10.5px !important;
+  line-height: 1.25 !important;
+}
+
+/* Cards must stay below dropdown */
+.home-current-card,
+.home-balance-card,
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.worker-overview-card,
+.worker-summary-card-lite,
+.cashbook-balance-card,
+.sales-summary-card,
+.reports-summary-card,
+.report-summary-card,
+.reports-overview-card,
+.report-overview-card,
+[class*="overview-card"],
+[class*="summary-card"],
+[class*="balance-card"] {
+  position: relative !important;
+  z-index: 20 !important;
+}
+
+.profile-dropdown,
+.settings-dropdown,
+.topbar-menu-right,
+.home-profile-dropdown,
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.expenses-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.report-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown,
+[class*="profile-dropdown"],
+[class*="settings-dropdown"] {
+  z-index: 2147483647 !important;
+}
+
+/* 3) ONLY THESE FOUR PAGES: SMALL GAP LIKE WORKERS */
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.cashbook-balance-card,
+.sales-summary-card,
+.reports-summary-card,
+.report-summary-card,
+.reports-overview-card,
+.report-overview-card {
+  margin-top: -24px !important;
+}
+
+/* Mobile tuning */
+@media (max-width: 430px) {
+  .profile-dropdown,
+  .settings-dropdown,
+  .topbar-menu-right,
+  .home-profile-dropdown,
+  .home-settings-dropdown,
+  .premium-profile-dropdown,
+  .expense-profile-dropdown,
+  .expenses-profile-dropdown,
+  .worker-profile-dropdown,
+  .workers-profile-dropdown,
+  .reports-profile-dropdown,
+  .report-profile-dropdown,
+  .cashbook-profile-dropdown,
+  .sales-profile-dropdown,
+  [class*="profile-dropdown"],
+  [class*="settings-dropdown"] {
+    top: 70px !important;
+    right: 9px !important;
+    width: min(270px, calc(100vw - 18px)) !important;
+    max-width: min(270px, calc(100vw - 18px)) !important;
+  }
+
+  .expense-summary-card,
+  .expenses-summary-card,
+  .expense-total-card,
+  .expense-overview-card,
+  .cashbook-balance-card,
+  .sales-summary-card,
+  .reports-summary-card,
+  .report-summary-card,
+  .reports-overview-card,
+  .report-overview-card {
+    margin-top: -22px !important;
+  }
+}
+/* =========================================================
+   FINAL APP.CSS FIX - MENU LAYER + IMAGES
+   Keep cards overlapping hero. Only dropdown floats above.
+   ========================================================= */
+
+.app-shell,
+.page-wrap,
+.home-page,
+.expense-premium-page,
+.expenses-page,
+.expense-page,
+.cashbook-page,
+.sales-page,
+.worker-page-lite,
+.workers-page,
+.reports-page,
+.report-page {
+  overflow: visible !important;
+}
+
+/* Do NOT put the whole hero/header above the first card. */
+.home-farm-banner,
+.home-hero-stack,
+.expense-farm-header,
+.expenses-farm-header,
+.expense-hero,
+.expenses-hero,
+.cashbook-farm-header,
+.sales-farm-header,
+.worker-premium-hero,
+.worker-farm-header,
+.workers-farm-header,
+.reports-hero,
+.report-hero,
+.reports-farm-header,
+.report-farm-header {
+  position: relative !important;
+  z-index: auto !important;
+  isolation: auto !important;
+  overflow: visible !important;
+}
+
+/* Keep the actual farm image rounded even while the header allows dropdown overflow. */
+.home-farm-banner::before,
+.home-farm-banner::after,
+.expense-header-image,
+.expense-header-shade,
+.expense-header-glow,
+.cashbook-header-image,
+.cashbook-header-shade,
+.sales-header-image,
+.sales-header-shade,
+.reports-hero-bg,
+.reports-hero-overlay {
+  border-radius: var(--farm-header-radius, 0 0 30px 30px) !important;
+}
+
+/* First card must stay up over the hero/header exactly like before. */
+.home-current-card,
+.home-balance-card,
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.cashbook-balance-card,
+.sales-summary-card,
+.worker-overview-card,
+.worker-summary-card-lite,
+.reports-summary-card,
+.report-summary-card,
+.reports-overview-card,
+.report-overview-card {
+  position: relative !important;
+  z-index: 60 !important;
+}
+
+/* Preserve the existing overlap spacing. */
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.cashbook-balance-card,
+.sales-summary-card,
+.reports-summary-card,
+.report-summary-card,
+.reports-overview-card,
+.report-overview-card {
+  margin-top: -24px !important;
+}
+
+/* Only the settings row/dropdown goes above the first card. */
+.home-hero-top,
+.expense-brand-row,
+.expenses-brand-row,
+.cashbook-brand-row,
+.sales-brand-row,
+.worker-premium-topbar,
+.reports-top-row,
+.topbar,
+.topbar-inner {
+  position: relative !important;
+  z-index: 200 !important;
+  overflow: visible !important;
+}
+
+.home-settings-wrap,
+.expense-settings-wrap,
+.expenses-settings-wrap,
+.cashbook-menu-wrap,
+.cashbook-settings-wrap,
+.sales-menu-wrap,
+.sales-settings-wrap,
+.worker-settings-wrap,
+.workers-settings-wrap,
+.reports-settings-wrap,
+.report-settings-wrap,
+.settings-wrap,
+.topbar-actions {
+  position: relative !important;
+  z-index: 2147483000 !important;
+  overflow: visible !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-shrink: 0 !important;
+}
+
+.settings-dropdown,
+.profile-dropdown,
+.topbar-menu-right,
+.home-profile-dropdown,
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.expenses-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.report-profile-dropdown,
+[class*="profile-dropdown"],
+[class*="settings-dropdown"] {
+  position: absolute !important;
+  top: calc(100% + 12px) !important;
+  right: 0 !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  z-index: 2147483647 !important;
+  width: min(326px, calc(100vw - 22px)) !important;
+  max-width: min(326px, calc(100vw - 22px)) !important;
+  max-height: calc(100vh - 112px) !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.985) !important;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.28) !important;
+}
+
+@media (max-width: 430px) {
+  .settings-dropdown,
+  .profile-dropdown,
+  .topbar-menu-right,
+  .home-profile-dropdown,
+  .home-settings-dropdown,
+  .premium-profile-dropdown,
+  .expense-profile-dropdown,
+  .expenses-profile-dropdown,
+  .cashbook-profile-dropdown,
+  .sales-profile-dropdown,
+  .worker-profile-dropdown,
+  .workers-profile-dropdown,
+  .reports-profile-dropdown,
+  .report-profile-dropdown,
+  [class*="profile-dropdown"],
+  [class*="settings-dropdown"] {
+    width: min(326px, calc(100vw - 18px)) !important;
+    max-width: min(326px, calc(100vw - 18px)) !important;
+    right: 0 !important;
+  }
+}
+
+/* Expense header logo: remove white outer ring/circle only on Expense page. */
+.expense-brand-logo-image {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #031423 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.22) !important;
+}
+
+.expense-brand-logo-image::before,
+.expense-brand-logo-image::after {
+  content: none !important;
+  display: none !important;
+}
+
+.expense-brand-logo-image img,
+.expense-brand-logo-image .expense-app-logo {
+  width: 128% !important;
+  height: 128% !important;
+  max-width: none !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  transform: scale(1.03) !important;
+}
+
+/* =========================================================
+   FINAL CLEAN APP FIX
+   Purpose:
+   1) Keep dropdown above cards without pushing cards down.
+   2) Remove Expense logo white outside ring by cropping only that logo.
+   3) Remove the green glow/stripe caused by global App background.
+   4) Do NOT edit Expense/Sales images from App.css.
+   ========================================================= */
+
+/* Remove the green side glow/stripe from the global app background. */
+body {
+  background:
+    radial-gradient(circle at 16% 4%, rgba(37, 99, 235, 0.1), transparent 28%),
+    linear-gradient(180deg, #eaf1f8 0%, #f8fbff 58%, #ffffff 100%) !important;
+}
+
+.shell-backdrop {
+  background:
+    radial-gradient(circle at 22% 6%, rgba(37, 99, 235, 0.08), transparent 20%),
+    linear-gradient(180deg, rgba(239, 246, 255, 0.66), rgba(255, 255, 255, 0.28)) !important;
+}
+
+/* Make sure no App.css image override creates green/white pasted image effects. */
+.expense-total-card .expense-wallet-art,
+.expense-total-card .expense-wallet-art-image,
+.sales-produce-art {
+  background-image: none !important;
+  background-color: transparent !important;
+  mix-blend-mode: normal !important;
+}
+
+.expense-total-card .expense-wallet-art > *,
+.expense-wallet-art.expense-wallet-art-image img,
+.sales-produce-art img,
+img[src*="cash-wallet-pkr"],
+img[src*="sales-produce-hero"] {
+  mix-blend-mode: normal !important;
+}
+
+/* Expense logo: same clean look as Home; no white outer ring. */
+.expense-brand-logo-image {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22) !important;
+}
+
+.expense-brand-logo-image::before,
+.expense-brand-logo-image::after {
+  content: none !important;
+  display: none !important;
+}
+
+.expense-brand-logo-image img,
+.expense-brand-logo-image .expense-app-logo {
+  width: 154% !important;
+  height: 154% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  display: block !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: scale(1.01) !important;
+}
+
+/* Dropdown layer stays above cards, but header/card overlap remains normal. */
+.app-shell,
+.page-wrap,
+.home-page,
+.expense-premium-page,
+.expenses-page,
+.expense-page,
+.cashbook-page,
+.sales-page,
+.worker-page-lite,
+.workers-page,
+.reports-page,
+.report-page {
+  overflow: visible !important;
+}
+
+.home-farm-banner,
+.home-hero-stack,
+.expense-farm-header,
+.expenses-farm-header,
+.expense-hero,
+.expenses-hero,
+.cashbook-farm-header,
+.sales-farm-header,
+.worker-premium-hero,
+.worker-farm-header,
+.workers-farm-header,
+.reports-hero,
+.report-hero,
+.reports-farm-header,
+.report-farm-header {
+  position: relative !important;
+  z-index: auto !important;
+  isolation: auto !important;
+  overflow: visible !important;
+}
+
+.home-current-card,
+.home-balance-card,
+.expense-summary-card,
+.expenses-summary-card,
+.expense-total-card,
+.expense-overview-card,
+.cashbook-balance-card,
+.sales-summary-card,
+.worker-overview-card,
+.worker-summary-card-lite,
+.reports-summary-card,
+.report-summary-card,
+.reports-overview-card,
+.report-overview-card {
+  position: relative !important;
+  z-index: 60 !important;
+}
+
+.home-hero-top,
+.expense-brand-row,
+.expenses-brand-row,
+.cashbook-brand-row,
+.sales-brand-row,
+.worker-premium-topbar,
+.reports-top-row,
+.topbar,
+.topbar-inner {
+  position: relative !important;
+  z-index: 200 !important;
+  overflow: visible !important;
+}
+
+.home-settings-wrap,
+.expense-settings-wrap,
+.expenses-settings-wrap,
+.cashbook-menu-wrap,
+.cashbook-settings-wrap,
+.sales-menu-wrap,
+.sales-settings-wrap,
+.worker-settings-wrap,
+.workers-settings-wrap,
+.reports-settings-wrap,
+.report-settings-wrap,
+.settings-wrap,
+.topbar-actions {
+  position: relative !important;
+  z-index: 2147483000 !important;
+  overflow: visible !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-shrink: 0 !important;
+}
+
+.settings-dropdown,
+.profile-dropdown,
+.topbar-menu-right,
+.home-profile-dropdown,
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.expenses-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.report-profile-dropdown,
+[class*="profile-dropdown"],
+[class*="settings-dropdown"] {
+  position: absolute !important;
+  top: calc(100% + 12px) !important;
+  right: 0 !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  z-index: 2147483647 !important;
+  width: min(326px, calc(100vw - 22px)) !important;
+  max-width: min(326px, calc(100vw - 22px)) !important;
+  max-height: calc(100vh - 112px) !important;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.985) !important;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.28) !important;
+}
+
+@media (max-width: 430px) {
+  .settings-dropdown,
+  .profile-dropdown,
+  .topbar-menu-right,
+  .home-profile-dropdown,
+  .home-settings-dropdown,
+  .premium-profile-dropdown,
+  .expense-profile-dropdown,
+  .expenses-profile-dropdown,
+  .cashbook-profile-dropdown,
+  .sales-profile-dropdown,
+  .worker-profile-dropdown,
+  .workers-profile-dropdown,
+  .reports-profile-dropdown,
+  .report-profile-dropdown,
+  [class*="profile-dropdown"],
+  [class*="settings-dropdown"] {
+    width: min(326px, calc(100vw - 18px)) !important;
+    max-width: min(326px, calc(100vw - 18px)) !important;
+    right: 0 !important;
+  }
+
+  .expense-brand-logo-image {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+  }
+
+  .expense-brand-logo-image img,
+  .expense-brand-logo-image .expense-app-logo {
+    width: 158% !important;
+    height: 158% !important;
+  }
+}
+
+
+/* =========================================================
+   APP.CSS VERSION 6 - FINAL MICRO FIX
+   Fixes only:
+   1) Remove green glow/stripe effect from App background.
+   2) Remove Expense logo outside white/green ring.
+   3) Fix Worker hero sharp gray bottom corners.
+   No wallet/sales image editing here.
+   ========================================================= */
+
+/* 1) Remove app-level green glow/stripe. Keep the same soft blue/white app background. */
+html,
+body {
+  background:
+    radial-gradient(circle at 16% 4%, rgba(37, 99, 235, 0.1), transparent 28%),
+    linear-gradient(180deg, #eaf1f8 0%, #f8fbff 58%, #ffffff 100%) !important;
+}
+
+.shell-backdrop {
+  background:
+    radial-gradient(circle at 22% 6%, rgba(37, 99, 235, 0.08), transparent 20%),
+    linear-gradient(180deg, rgba(239, 246, 255, 0.66), rgba(255, 255, 255, 0.28)) !important;
+}
+
+/* Remove the extra green glow layer from Expense header only. */
+.expense-header-glow {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* Remove the green contour/stripe overlay from the Expense total card only. */
+.expense-total-card::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+}
+
+/* Do not let App.css touch wallet/sales images. */
+.expense-total-card .expense-wallet-art,
+.expense-total-card .expense-wallet-art-image,
+.expense-total-card .expense-wallet-art img,
+.expense-wallet-art.expense-wallet-art-image img,
+.sales-produce-art,
+.sales-produce-art img,
+img[src*="cash-wallet-pkr"],
+img[src*="sales-produce-hero"] {
+  mix-blend-mode: normal !important;
+  filter: none !important;
+}
+
+/* 2) Expense logo: remove the outside ring and crop the logo like Home. */
+.expense-brand-logo-image {
+  width: 50px !important;
+  height: 50px !important;
+  min-width: 50px !important;
+  max-width: 50px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 999px !important;
+  overflow: hidden !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.expense-brand-logo-image::before,
+.expense-brand-logo-image::after {
+  content: none !important;
+  display: none !important;
+}
+
+.expense-brand-logo-image img,
+.expense-brand-logo-image .expense-app-logo {
+  width: 170% !important;
+  height: 170% !important;
+  min-width: 170% !important;
+  min-height: 170% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  display: block !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Also remove artificial outer ring from the shared logo containers only. */
+.app-brand-logo,
+.brand-mark,
+.home-brand-logo,
+.home-logo-orb,
+.home-brand-mark,
+.home-brand-mark-premium,
+.home-premium-brand-mark,
+.home-logo-mark,
+.worker-brand-mark-premium,
+.worker-brand-mark,
+.worker-premium-logo-mark,
+.reports-brand-mark,
+.report-brand-mark,
+.reports-premium-brand-mark,
+.reports-logo-mark,
+.expense-logo-orb,
+.expenses-logo-orb,
+.expense-brand-mark,
+.expenses-brand-mark,
+.expense-premium-brand-mark,
+.farm-premium-logo-mark,
+.cashbook-logo-orb,
+.cashbook-brand-mark,
+.cash-brand-mark,
+.cash-premium-brand-mark,
+.sales-logo-orb,
+.sales-brand-mark,
+.sales-premium-brand-mark,
+.farm-brand-mark,
+.farm-app-brand-mark,
+.premium-brand-mark {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* 3) Worker hero: remove sharp gray bottom corners without changing layout. */
+.worker-premium-hero,
+.worker-farm-header,
+.workers-farm-header {
+  border-radius: 0 0 30px 30px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background-clip: padding-box !important;
+  isolation: isolate !important;
+}
+
+.worker-premium-hero::before,
+.worker-premium-hero::after,
+.worker-farm-header::before,
+.worker-farm-header::after,
+.workers-farm-header::before,
+.workers-farm-header::after,
+.worker-premium-hero > img,
+.worker-farm-header > img,
+.workers-farm-header > img,
+.worker-header-image,
+.workers-header-image,
+.worker-hero-image,
+.workers-hero-image,
+.worker-premium-hero-image,
+.worker-premium-hero-bg,
+.worker-header-bg,
+.workers-header-bg {
+  border-radius: 0 0 30px 30px !important;
+  clip-path: inset(0 0 0 0 round 0 0 30px 30px) !important;
+}
+
+/* Keep settings dropdown above cards. */
+.worker-premium-topbar,
+.worker-settings-wrap,
+.workers-settings-wrap,
+.expense-brand-row,
+.expense-settings-wrap,
+.home-hero-top,
+.home-settings-wrap,
+.cashbook-brand-row,
+.cashbook-menu-wrap,
+.sales-brand-row,
+.sales-menu-wrap,
+.reports-top-row,
+.reports-settings-wrap {
+  position: relative !important;
+  z-index: 2147483000 !important;
+  overflow: visible !important;
+}
+
+.settings-dropdown,
+.profile-dropdown,
+.topbar-menu-right,
+.home-profile-dropdown,
+.home-settings-dropdown,
+.premium-profile-dropdown,
+.expense-profile-dropdown,
+.expenses-profile-dropdown,
+.cashbook-profile-dropdown,
+.sales-profile-dropdown,
+.worker-profile-dropdown,
+.workers-profile-dropdown,
+.reports-profile-dropdown,
+.report-profile-dropdown,
+[class*="profile-dropdown"],
+[class*="settings-dropdown"] {
+  z-index: 2147483647 !important;
+}
+
+@media (max-width: 430px) {
+  .expense-brand-logo-image {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    max-width: 46px !important;
+  }
+
+  .expense-brand-logo-image img,
+  .expense-brand-logo-image .expense-app-logo {
+    width: 172% !important;
+    height: 172% !important;
+    min-width: 172% !important;
+    min-height: 172% !important;
+  }
+}
