@@ -222,6 +222,7 @@ function AppGlobalHeaderStyles() {
     <style>{`
       :root {
         --farm-app-logo-url: url("${farmAppLogo}");
+        --farm-keyboard-offset: 0px;
       }
 
       /*
@@ -337,13 +338,18 @@ function AppGlobalHeaderStyles() {
         }
 
         .home-farm-banner,
+        .worker-premium-hero,
+        .worker-farm-header,
+        .workers-farm-header,
         .reports-hero,
         .report-hero {
-          width: 100% !important;
-          margin-left: 0 !important;
-          margin-right: 0 !important;
+          width: calc(100% + 12px) !important;
+          max-width: calc(100% + 12px) !important;
+          margin-left: -6px !important;
+          margin-right: -6px !important;
           margin-top: 0 !important;
           border-radius: 0 0 28px 28px !important;
+          box-sizing: border-box !important;
         }
 
         .reports-graph-box,
@@ -399,7 +405,7 @@ function AppGlobalHeaderStyles() {
 
         .bottom-nav {
           width: min(430px, calc(100vw - 20px)) !important;
-          bottom: max(8px, env(safe-area-inset-bottom)) !important;
+          bottom: calc(max(8px, env(safe-area-inset-bottom)) - var(--farm-keyboard-offset, 0px)) !important;
           height: auto !important;
           min-height: 78px !important;
           gap: 4px !important;
@@ -431,7 +437,7 @@ function AppGlobalHeaderStyles() {
 
         .bottom-nav {
           width: min(430px, calc(100vw - 20px)) !important;
-          bottom: max(8px, env(safe-area-inset-bottom)) !important;
+          bottom: calc(max(8px, env(safe-area-inset-bottom)) - var(--farm-keyboard-offset, 0px)) !important;
           height: auto !important;
           min-height: 78px !important;
           padding: 9px 10px 12px !important;
@@ -567,6 +573,35 @@ function AppLayout() {
   useEffect(() => {
     setSettingsOpen(false);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const updateKeyboardOffset = () => {
+      if (typeof window === "undefined" || typeof document === "undefined") return;
+
+      const visualViewport = window.visualViewport;
+      const offset = visualViewport
+        ? Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop)
+        : 0;
+
+      document.documentElement.style.setProperty(
+        "--farm-keyboard-offset",
+        `${Math.round(offset)}px`
+      );
+    };
+
+    updateKeyboardOffset();
+
+    window.visualViewport?.addEventListener("resize", updateKeyboardOffset);
+    window.visualViewport?.addEventListener("scroll", updateKeyboardOffset);
+    window.addEventListener("resize", updateKeyboardOffset);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateKeyboardOffset);
+      window.visualViewport?.removeEventListener("scroll", updateKeyboardOffset);
+      window.removeEventListener("resize", updateKeyboardOffset);
+      document.documentElement.style.setProperty("--farm-keyboard-offset", "0px");
+    };
+  }, []);
 
 
   useEffect(() => {
@@ -950,4 +985,4 @@ export default function App() {
     </Router>
   );
 }
- 
+   

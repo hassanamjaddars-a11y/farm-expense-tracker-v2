@@ -6,7 +6,6 @@ import "../styles/reports.css";
 import reportsHeaderBackground from "../assets/reports-header-background.png";
 import { useAuth } from "../context/AuthContext";
 import {
-  FaChevronRight,
   FaGasPump,
   FaLeaf,
   FaRegFileAlt,
@@ -217,6 +216,7 @@ export default function Reports() {
   const [expenseCategories, setExpenseCategories] = useState([]);
   const [workerCategories, setWorkerCategories] = useState([]);
   const [openCategoryMenu, setOpenCategoryMenu] = useState(null);
+  const [openRecordMenu, setOpenRecordMenu] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [graphMode, setGraphMode] = useState("summary");
   const [activeGraphPoint, setActiveGraphPoint] = useState(null);
@@ -276,7 +276,10 @@ export default function Reports() {
       fetchReports();
     };
 
-    const closeMenus = () => setOpenCategoryMenu(null);
+    const closeMenus = () => {
+      setOpenCategoryMenu(null);
+      setOpenRecordMenu(null);
+    };
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("scroll", closeMenus);
@@ -338,6 +341,7 @@ export default function Reports() {
     setSearchParams(next);
     setSettingsOpen(false);
     setOpenCategoryMenu(null);
+    setOpenRecordMenu(null);
   };
 
   const closeReportsPanel = () => {
@@ -687,17 +691,8 @@ export default function Reports() {
   useEffect(() => {
     if (!chart.hasRealGraphData) {
       setActiveGraphPoint(null);
-      return;
     }
-
-    const activeSeries =
-      graphMode === "summary" ? chart.income.points : chart.expenses.points;
-
-    if (!activeGraphPoint && activeSeries?.length) {
-      const point = activeSeries[Math.max(activeSeries.length - 4, 0)];
-      setActiveGraphPoint(point);
-    }
-  }, [chart, graphMode, activeGraphPoint]);
+  }, [chart.hasRealGraphData]);
 
   useEffect(() => {
     setActiveGraphPoint(null);
@@ -857,6 +852,128 @@ export default function Reports() {
     }
   };
 
+
+  const deleteExpenseRecord = async (item, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const id = item?._id;
+
+    if (!id || item?.isPendingSync) {
+      toast.error("This expense cannot be deleted from reports yet");
+      return;
+    }
+
+    const ok = window.confirm("Delete this expense record?");
+    if (!ok) return;
+
+    try {
+      await api.delete(`/expenses/${id}`);
+      toast.success("Expense deleted");
+      setOpenRecordMenu(null);
+      setData((prev) => ({
+        ...prev,
+        recentExpenses: (prev.recentExpenses || []).filter((entry) => entry?._id !== id),
+        expenses: (prev.expenses || []).filter((entry) => entry?._id !== id),
+      }));
+      await fetchReports();
+    } catch (err) {
+      console.error("Reports expense delete error:", err);
+      toast.error(err?.response?.data?.error || "Failed to delete expense");
+    }
+  };
+
+  const deleteWorkerRecord = async (item, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const id = item?._id;
+
+    if (!id || item?.isPendingSync) {
+      toast.error("This worker payment cannot be deleted from reports yet");
+      return;
+    }
+
+    const ok = window.confirm("Delete this worker payment record?");
+    if (!ok) return;
+
+    try {
+      await api.delete(`/workers/${id}`);
+      toast.success("Worker payment deleted");
+      setOpenRecordMenu(null);
+      setData((prev) => ({
+        ...prev,
+        recentWorkers: (prev.recentWorkers || []).filter((entry) => entry?._id !== id),
+        workers: (prev.workers || []).filter((entry) => entry?._id !== id),
+        workerPayments: (prev.workerPayments || []).filter((entry) => entry?._id !== id),
+      }));
+      await fetchReports();
+    } catch (err) {
+      console.error("Reports worker payment delete error:", err);
+      toast.error(err?.response?.data?.error || "Failed to delete worker payment");
+    }
+  };
+
+  const renderRecordActions = ({ menuKey, deleteLabel, onDelete }) => (
+    <div
+      className="reports-menu-wrap"
+      onClick={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onTouchStart={(event) => event.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="reports-menu-btn"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setOpenRecordMenu((prev) => (prev === menuKey ? null : menuKey));
+        }}
+        aria-label="Open record menu"
+      >
+        ⋯
+      </button>
+
+      {openRecordMenu === menuKey ? (
+        <div className="reports-menu reports-record-menu">
+          <button
+            type="button"
+            className="danger"
+            onClick={onDelete}
+          >
+            {deleteLabel}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const renderOpenDots = (panelName, label) => (
+    <div
+      className="reports-menu-wrap"
+      onClick={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onTouchStart={(event) => event.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="reports-menu-btn"
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openReportsPanel(panelName);
+        }}
+        aria-label={label}
+      >
+        ⋯
+      </button>
+    </div>
+  );
+
   const renderCategoryRow = (item, index, type) => {
     const isExpense = type === "expense";
     const totalBase = isExpense ? totalExpenses : totalWorkers;
@@ -964,10 +1081,11 @@ export default function Reports() {
     const categoryName = item.category?.name || "Uncategorized";
     const meta = getExpenseCategoryMeta(categoryName);
     const Icon = meta.Icon;
+    const recordKey = item._id || `expense-${item.description || "record"}-${item.createdAt || ""}`;
 
     return (
       <article
-        key={item._id || `expense-${item.description || "record"}-${item.createdAt || ""}`}
+        key={recordKey}
         className="reports-record-row"
         role="button"
         tabIndex={0}
@@ -990,7 +1108,11 @@ export default function Reports() {
         </div>
 
         <b className="negative">-{money(item.amount)}</b>
-        <FaChevronRight className="reports-row-arrow" />
+        {renderRecordActions({
+          menuKey: `expense-record-${recordKey}`,
+          deleteLabel: "Delete expense",
+          onDelete: (event) => deleteExpenseRecord(item, event),
+        })}
       </article>
     );
   };
@@ -999,10 +1121,11 @@ export default function Reports() {
     const categoryName = item.category?.name || "Uncategorized";
     const meta = getWorkerCategoryMeta(categoryName);
     const Icon = meta.Icon;
+    const recordKey = item._id || `worker-${item.workerName || "record"}-${item.createdAt || ""}`;
 
     return (
       <article
-        key={item._id || `worker-${item.workerName || "record"}-${item.createdAt || ""}`}
+        key={recordKey}
         className="reports-record-row"
         role="button"
         tabIndex={0}
@@ -1025,7 +1148,11 @@ export default function Reports() {
         </div>
 
         <b className="negative">-{money(item.amount)}</b>
-        <FaChevronRight className="reports-row-arrow" />
+        {renderRecordActions({
+          menuKey: `worker-record-${recordKey}`,
+          deleteLabel: "Delete worker payment",
+          onDelete: (event) => deleteWorkerRecord(item, event),
+        })}
       </article>
     );
   };
@@ -1165,9 +1292,52 @@ export default function Reports() {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
+
+      if (event.currentTarget?.focus) {
+        event.currentTarget.focus({ preventScroll: true });
+      }
     }
 
     setActiveGraphPoint(point);
+  };
+
+  const getVisibleGraphPoints = () =>
+    graphMode === "summary"
+      ? [...chart.income.points, ...chart.spent.points]
+      : [
+          ...chart.income.points,
+          ...chart.expenses.points,
+          ...chart.workers.points,
+          ...chart.cashOut.points,
+        ];
+
+  const activateNearestGraphPoint = (event) => {
+    if (!chart.hasRealGraphData) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const touch = event.touches?.[0] || event.changedTouches?.[0];
+    const clientX = touch?.clientX ?? event.clientX;
+    const clientY = touch?.clientY ?? event.clientY;
+
+    if (!Number.isFinite(clientX) || !Number.isFinite(clientY)) return;
+
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    const points = getVisibleGraphPoints();
+
+    if (!points.length) return;
+
+    const nearest = points.reduce((best, point) => {
+      const distance = (point.x - x) ** 2 + (point.y - y) ** 2;
+      if (!best || distance < best.distance) {
+        return { point, distance };
+      }
+      return best;
+    }, null);
+
+    if (nearest?.point) {
+      setActiveGraphPoint(nearest.point);
+    }
   };
 
   const renderGraphLine = (line, className) => (
@@ -1192,9 +1362,7 @@ export default function Reports() {
     </>
   );
 
-  const activePoint = chart.hasRealGraphData
-    ? activeGraphPoint || chart.income.points[Math.max(chart.income.points.length - 4, 0)]
-    : null;
+  const activePoint = chart.hasRealGraphData ? activeGraphPoint : null;
 
   return (
     <div className={`reports-page${settingsOpen ? " reports-menu-open" : ""}`}>
@@ -1377,7 +1545,7 @@ export default function Reports() {
           </div>
         </div>
 
-        <div className="reports-graph-box">
+        <div className={`reports-graph-box${activePoint ? " reports-graph-box-active" : ""}`}>
           <div className="reports-graph-top">
             <div className="reports-graph-tabs" role="tablist" aria-label="Graph mode">
               <button
@@ -1453,7 +1621,12 @@ export default function Reports() {
               </svg>
 
               {chart.hasRealGraphData ? (
-                <div className="reports-graph-click-layer">
+                <div
+                  className="reports-graph-click-layer"
+                  onPointerDown={activateNearestGraphPoint}
+                  onTouchStart={activateNearestGraphPoint}
+                  onClick={activateNearestGraphPoint}
+                >
                   {graphMode === "summary" ? (
                     <>
                       {renderGraphLine(chart.income, "income-hit")}
@@ -1530,7 +1703,7 @@ export default function Reports() {
             <small>This period</small>
           </div>
 
-          <FaChevronRight />
+          {renderOpenDots("expense-entries", "Open expense entries")}
         </article>
 
         <article
@@ -1551,7 +1724,7 @@ export default function Reports() {
             <small>This period</small>
           </div>
 
-          <FaChevronRight />
+          {renderOpenDots("worker-entries", "Open worker entries")}
         </article>
       </section>
 
@@ -1577,7 +1750,6 @@ export default function Reports() {
                 onClick={() => openReportsPanel("expense-categories")}
               >
                 View all
-                <FaChevronRight />
               </button>
             ) : null}
           </div>
@@ -1621,7 +1793,6 @@ export default function Reports() {
                 onClick={() => openReportsPanel("worker-categories")}
               >
                 View all
-                <FaChevronRight />
               </button>
             ) : null}
           </div>
@@ -1674,7 +1845,16 @@ export default function Reports() {
                     <small>Created: {formatDateTime(item.createdAt)}</small>
                   </div>
 
-                  <b className="negative">-{money(item.amount)}</b>
+                  <div className="reports-detail-actions">
+                    <b className="negative">-{money(item.amount)}</b>
+                    <button
+                      type="button"
+                      className="reports-inline-delete-btn"
+                      onClick={(event) => deleteExpenseRecord(item, event)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
@@ -1712,7 +1892,16 @@ export default function Reports() {
                     <small>Created: {formatDateTime(item.createdAt)}</small>
                   </div>
 
-                  <b className="negative">-{money(item.amount)}</b>
+                  <div className="reports-detail-actions">
+                    <b className="negative">-{money(item.amount)}</b>
+                    <button
+                      type="button"
+                      className="reports-inline-delete-btn"
+                      onClick={(event) => deleteWorkerRecord(item, event)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
@@ -1739,7 +1928,6 @@ export default function Reports() {
             {(data.recentExpenses || []).length > 4 ? (
               <button type="button" onClick={() => openReportsPanel("recent-expenses")}>
                 View all
-                <FaChevronRight />
               </button>
             ) : null}
           </div>
@@ -1773,7 +1961,6 @@ export default function Reports() {
             {(data.recentWorkers || []).length > 4 ? (
               <button type="button" onClick={() => openReportsPanel("recent-workers")}>
                 View all
-                <FaChevronRight />
               </button>
             ) : null}
           </div>

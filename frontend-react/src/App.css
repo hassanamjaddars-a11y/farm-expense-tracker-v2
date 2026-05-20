@@ -3740,3 +3740,43 @@ textarea {
     min-height: 190px !important;
   }
 }
+
+
+/* =========================================================
+   FINAL WIDTH ONLY - HOME WORKERS REPORTS
+   Only widens these three top header images on mobile.
+   No sales/expense/cashbook image changes.
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .app-shell .page-wrap .home-page .home-farm-banner,
+  .app-shell .page-wrap .worker-page-lite .worker-premium-hero,
+  .app-shell .page-wrap .worker-page-lite .worker-farm-header,
+  .app-shell .page-wrap .workers-page .worker-premium-hero,
+  .app-shell .page-wrap .workers-page .worker-farm-header,
+  .app-shell .page-wrap .workers-page .workers-farm-header,
+  .app-shell .page-wrap .reports-page .reports-hero,
+  .app-shell .page-wrap .report-page .report-hero {
+    width: calc(100% + 12px) !important;
+    max-width: calc(100% + 12px) !important;
+    margin-left: -6px !important;
+    margin-right: -6px !important;
+    margin-top: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .app-shell .page-wrap .home-page .home-farm-banner::before,
+  .app-shell .page-wrap .home-page .home-farm-banner::after,
+  .app-shell .page-wrap .worker-page-lite .worker-premium-hero::before,
+  .app-shell .page-wrap .worker-page-lite .worker-premium-hero::after,
+  .app-shell .page-wrap .workers-page .worker-premium-hero::before,
+  .app-shell .page-wrap .workers-page .worker-premium-hero::after,
+  .app-shell .page-wrap .reports-page .reports-hero-bg,
+  .app-shell .page-wrap .reports-page .reports-hero-overlay,
+  .app-shell .page-wrap .report-page .report-hero-bg,
+  .app-shell .page-wrap .report-page .report-hero-overlay {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+ 
