@@ -222,7 +222,6 @@ function AppGlobalHeaderStyles() {
     <style>{`
       :root {
         --farm-app-logo-url: url("${farmAppLogo}");
-        --farm-keyboard-offset: 0px;
       }
 
       /*
@@ -404,13 +403,22 @@ function AppGlobalHeaderStyles() {
         }
 
         .bottom-nav {
+          position: fixed !important;
+          left: 50% !important;
+          right: auto !important;
+          top: auto !important;
+          bottom: max(8px, env(safe-area-inset-bottom)) !important;
           width: min(430px, calc(100vw - 20px)) !important;
-          bottom: calc(max(8px, env(safe-area-inset-bottom)) - var(--farm-keyboard-offset, 0px)) !important;
           height: auto !important;
           min-height: 78px !important;
           gap: 4px !important;
           padding: 9px 10px 12px !important;
           border-radius: 28px !important;
+          transform: translate3d(-50%, 0, 0) !important;
+          -webkit-transform: translate3d(-50%, 0, 0) !important;
+          backface-visibility: hidden !important;
+          -webkit-backface-visibility: hidden !important;
+          will-change: transform !important;
         }
 
         .bottom-nav-item {
@@ -436,12 +444,21 @@ function AppGlobalHeaderStyles() {
         }
 
         .bottom-nav {
+          position: fixed !important;
+          left: 50% !important;
+          right: auto !important;
+          top: auto !important;
+          bottom: max(8px, env(safe-area-inset-bottom)) !important;
           width: min(430px, calc(100vw - 20px)) !important;
-          bottom: calc(max(8px, env(safe-area-inset-bottom)) - var(--farm-keyboard-offset, 0px)) !important;
           height: auto !important;
           min-height: 78px !important;
           padding: 9px 10px 12px !important;
           border-radius: 28px !important;
+          transform: translate3d(-50%, 0, 0) !important;
+          -webkit-transform: translate3d(-50%, 0, 0) !important;
+          backface-visibility: hidden !important;
+          -webkit-backface-visibility: hidden !important;
+          will-change: transform !important;
         }
 
         .bottom-nav-item {
@@ -573,36 +590,6 @@ function AppLayout() {
   useEffect(() => {
     setSettingsOpen(false);
   }, [location.pathname, location.search]);
-
-  useEffect(() => {
-    const updateKeyboardOffset = () => {
-      if (typeof window === "undefined" || typeof document === "undefined") return;
-
-      const visualViewport = window.visualViewport;
-      const offset = visualViewport
-        ? Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop)
-        : 0;
-
-      document.documentElement.style.setProperty(
-        "--farm-keyboard-offset",
-        `${Math.round(offset)}px`
-      );
-    };
-
-    updateKeyboardOffset();
-
-    window.visualViewport?.addEventListener("resize", updateKeyboardOffset);
-    window.visualViewport?.addEventListener("scroll", updateKeyboardOffset);
-    window.addEventListener("resize", updateKeyboardOffset);
-
-    return () => {
-      window.visualViewport?.removeEventListener("resize", updateKeyboardOffset);
-      window.visualViewport?.removeEventListener("scroll", updateKeyboardOffset);
-      window.removeEventListener("resize", updateKeyboardOffset);
-      document.documentElement.style.setProperty("--farm-keyboard-offset", "0px");
-    };
-  }, []);
-
 
   useEffect(() => {
     const SAVE_CLICK_LOCK_MS = 3000;
@@ -985,4 +972,4 @@ export default function App() {
     </Router>
   );
 }
-   
+    
