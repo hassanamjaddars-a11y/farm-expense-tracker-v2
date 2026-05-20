@@ -225,10 +225,13 @@ function AppGlobalHeaderStyles() {
       }
 
       /*
-        FINAL APP JSX MICRO FIX
-        1) Keeps page settings menus fully visible on iPhone.
-        2) Keeps reports graph dots tappable but visually small.
-        3) Keeps toast/loading messages fully visible above all pages.
+        FINAL SAFE APP MICRO FIX
+        Only fixes:
+        1) iPhone settings dropdown visibility.
+        2) iPhone graph tap target while keeping the dot visually small.
+        3) Full green/red toast ring instead of half spinner.
+        4) Home/Reports header width restored to match other pages.
+        5) Bottom navbar restored to normal height in installed app mode.
       */
 
       .home-settings-wrap,
@@ -277,6 +280,40 @@ function AppGlobalHeaderStyles() {
         overflow-y: auto !important;
       }
 
+      .farm-toast-ring {
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        min-height: 18px !important;
+        border-radius: 999px !important;
+        display: inline-block !important;
+        box-sizing: border-box !important;
+        background: transparent !important;
+      }
+
+      .farm-toast-ring-success,
+      .farm-toast-ring-loading {
+        border: 3px solid #22c55e !important;
+      }
+
+      .farm-toast-ring-error {
+        border: 3px solid #ef4444 !important;
+      }
+
+      .farm-toast-safe {
+        max-width: calc(100vw - 24px) !important;
+        overflow: visible !important;
+      }
+
+      .farm-toast-safe [role="status"],
+      .farm-toast-safe [role="alert"] {
+        overflow: visible !important;
+      }
+
+      .farm-save-click-locked {
+        pointer-events: none !important;
+      }
+
       @media (max-width: 430px) {
         .home-profile-dropdown,
         .home-settings-dropdown,
@@ -299,15 +336,38 @@ function AppGlobalHeaderStyles() {
           max-height: calc(100vh - 90px - env(safe-area-inset-top)) !important;
         }
 
+        .home-farm-banner,
+        .reports-hero,
+        .report-hero {
+          width: 100% !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          margin-top: 0 !important;
+          border-radius: 0 0 28px 28px !important;
+        }
+
+        .reports-graph-box,
+        .reports-graph-scroll,
+        .reports-graph-canvas,
+        .reports-graph-click-layer {
+          touch-action: manipulation !important;
+        }
+
+        .reports-graph-click-layer {
+          z-index: 150 !important;
+          pointer-events: none !important;
+        }
+
         .reports-graph-dot-button {
-          width: 30px !important;
-          height: 30px !important;
-          margin-left: -15px !important;
-          margin-top: -15px !important;
+          width: 34px !important;
+          height: 34px !important;
+          margin-left: -17px !important;
+          margin-top: -17px !important;
           border-radius: 999px !important;
           background: transparent !important;
           pointer-events: auto !important;
           touch-action: manipulation !important;
+          z-index: 170 !important;
           -webkit-tap-highlight-color: transparent !important;
         }
 
@@ -318,30 +378,70 @@ function AppGlobalHeaderStyles() {
           top: 50% !important;
           right: auto !important;
           bottom: auto !important;
-          width: 9px !important;
-          height: 9px !important;
-          min-width: 9px !important;
-          min-height: 9px !important;
+          width: 8px !important;
+          height: 8px !important;
+          min-width: 8px !important;
+          min-height: 8px !important;
           transform: translate(-50%, -50%) !important;
           border-radius: 999px !important;
-          background: rgba(255, 255, 255, 0.62) !important;
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) !important;
+          background: rgba(255, 255, 255, 0.68) !important;
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.38) !important;
         }
 
         .reports-graph-tabs button {
           min-height: 34px !important;
           padding: 7px 11px !important;
         }
+
+        .app-shell {
+          padding-bottom: calc(116px + env(safe-area-inset-bottom)) !important;
+        }
+
+        .bottom-nav {
+          width: min(430px, calc(100vw - 20px)) !important;
+          bottom: max(8px, env(safe-area-inset-bottom)) !important;
+          height: auto !important;
+          min-height: 78px !important;
+          gap: 4px !important;
+          padding: 9px 10px 12px !important;
+          border-radius: 28px !important;
+        }
+
+        .bottom-nav-item {
+          height: 64px !important;
+          border-radius: 22px !important;
+          gap: 5px !important;
+          padding: 6px 3px !important;
+        }
+
+        .bottom-nav-icon .app-svg-icon {
+          font-size: 23px !important;
+        }
+
+        .bottom-nav-label {
+          font-size: 9.5px !important;
+          line-height: 1.05 !important;
+        }
       }
 
-      .farm-toast-safe {
-        max-width: calc(100vw - 24px) !important;
-        overflow: visible !important;
-      }
+      @media (display-mode: standalone) and (max-width: 430px) {
+        .app-shell {
+          padding-bottom: calc(118px + env(safe-area-inset-bottom)) !important;
+        }
 
-      .farm-toast-safe [role="status"],
-      .farm-toast-safe [role="alert"] {
-        overflow: visible !important;
+        .bottom-nav {
+          width: min(430px, calc(100vw - 20px)) !important;
+          bottom: max(8px, env(safe-area-inset-bottom)) !important;
+          height: auto !important;
+          min-height: 78px !important;
+          padding: 9px 10px 12px !important;
+          border-radius: 28px !important;
+        }
+
+        .bottom-nav-item {
+          height: 64px !important;
+          border-radius: 22px !important;
+        }
       }
     `}</style>
   );
@@ -468,6 +568,61 @@ function AppLayout() {
     setSettingsOpen(false);
   }, [location.pathname, location.search]);
 
+
+  useEffect(() => {
+    const SAVE_CLICK_LOCK_MS = 3000;
+    const saveButtonTexts = [
+      "save expense",
+      "save sale",
+      "save worker",
+      "worker payment",
+      "save payment",
+    ];
+
+    const isProtectedSaveButton = (button) => {
+      if (!button) return false;
+
+      const text = String(button.textContent || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+
+      return saveButtonTexts.some((label) => text.includes(label));
+    };
+
+    const handleSaveButtonClick = (event) => {
+      const button = event.target?.closest?.("button");
+      if (!isProtectedSaveButton(button)) return;
+
+      const now = Date.now();
+      const lockedUntil = Number(button.dataset.farmClickLockUntil || 0);
+
+      if (lockedUntil && now < lockedUntil) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation?.();
+        return;
+      }
+
+      const nextUnlock = now + SAVE_CLICK_LOCK_MS;
+      button.dataset.farmClickLockUntil = String(nextUnlock);
+      button.classList.add("farm-save-click-locked");
+
+      window.setTimeout(() => {
+        if (Number(button.dataset.farmClickLockUntil || 0) <= nextUnlock) {
+          delete button.dataset.farmClickLockUntil;
+          button.classList.remove("farm-save-click-locked");
+        }
+      }, SAVE_CLICK_LOCK_MS);
+    };
+
+    document.addEventListener("click", handleSaveButtonClick, true);
+
+    return () => {
+      document.removeEventListener("click", handleSaveButtonClick, true);
+    };
+  }, []);
+
   const openSettings = () => {
     setSettingsOpen(false);
     navigate("/reports?panel=settings");
@@ -513,19 +668,14 @@ function AppLayout() {
           className: "farm-toast-safe",
           duration: 2200,
           success: {
-            iconTheme: {
-              primary: "#22c55e",
-              secondary: "#ffffff",
-            },
+            icon: <span className="farm-toast-ring farm-toast-ring-success" aria-hidden="true" />,
           },
           error: {
-            iconTheme: {
-              primary: "#ef4444",
-              secondary: "#ffffff",
-            },
+            icon: <span className="farm-toast-ring farm-toast-ring-error" aria-hidden="true" />,
           },
           loading: {
             duration: 1400,
+            icon: <span className="farm-toast-ring farm-toast-ring-loading" aria-hidden="true" />,
           },
           style: {
             maxWidth: "calc(100vw - 24px)",

@@ -421,6 +421,38 @@ export default function Reports() {
   ]);
   const recentCashBook = readArray(data.recentCashBook, data.cashBookEntries, data.recentCash);
 
+  const expenseRecordsForCounts = useMemo(
+    () => uniqueById([...readArray(data.expenses), ...readArray(data.recentExpenses)]),
+    [data.expenses, data.recentExpenses]
+  );
+
+  const workerRecordsForCounts = useMemo(
+    () =>
+      uniqueById([
+        ...readArray(data.workers),
+        ...readArray(data.workerPayments),
+        ...readArray(data.recentWorkers),
+      ]),
+    [data.workers, data.workerPayments, data.recentWorkers]
+  );
+
+  const getRecordCategoryName = (item) =>
+    String(
+      item?.category?.name ||
+        item?.categoryName ||
+        item?.category ||
+        item?.workerCategory ||
+        item?.expenseCategory ||
+        "Uncategorized"
+    );
+
+  const countRecordsForCategory = (records, categoryName) => {
+    const target = normalizeName(categoryName || "Uncategorized");
+
+    return records.filter((record) => normalizeName(getRecordCategoryName(record)) === target)
+      .length;
+  };
+
   const chart = useMemo(() => {
     const toSafeDate = (value) => {
       const date = value ? new Date(value) : new Date();
@@ -836,6 +868,19 @@ export default function Reports() {
     const Icon = meta.Icon;
     const realCategory = isExpense ? resolveExpenseCategory(item) : resolveWorkerCategory(item);
     const menuKey = realCategory?._id || `${type}-${item.name}-${index}`;
+    const apiCount = Number(
+      item?.count ?? item?.recordCount ?? item?.recordsCount ?? item?.entryCount ?? 0
+    );
+    const nestedCount = Array.isArray(item?.records)
+      ? item.records.length
+      : Array.isArray(item?.items)
+        ? item.items.length
+        : 0;
+    const derivedCount = countRecordsForCategory(
+      isExpense ? expenseRecordsForCounts : workerRecordsForCounts,
+      item.name
+    );
+    const displayCount = Math.max(apiCount, nestedCount, derivedCount);
 
     return (
       <article key={`${type}-cat-${item.name}-${index}`} className="reports-category-row">
@@ -906,7 +951,7 @@ export default function Reports() {
 
           <div className="reports-category-bottom">
             <small>
-              {item.count || 0} record{item.count === 1 ? "" : "s"}
+              {displayCount} record{displayCount === 1 ? "" : "s"}
             </small>
             <small>{percentText}%</small>
           </div>
@@ -1116,6 +1161,15 @@ export default function Reports() {
     );
   };
 
+  const activateGraphPoint = (point, event) => {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    setActiveGraphPoint(point);
+  };
+
   const renderGraphLine = (line, className) => (
     <>
       {line.points.map((point) => (
@@ -1127,8 +1181,12 @@ export default function Reports() {
             left: `${point.x}px`,
             top: `${point.y}px`,
           }}
-          onClick={() => setActiveGraphPoint(point)}
+          onPointerDown={(event) => activateGraphPoint(point, event)}
+          onTouchStart={(event) => activateGraphPoint(point, event)}
+          onMouseDown={(event) => activateGraphPoint(point, event)}
+          onClick={(event) => activateGraphPoint(point, event)}
           aria-label={`${point.series} ${point.label} ${money(point.value)}`}
+          aria-pressed={activeGraphPoint?.key === point.key && activeGraphPoint?.series === point.series}
         />
       ))}
     </>
@@ -1772,4 +1830,4 @@ export default function Reports() {
       <div className="reports-bottom-space" />
     </div>
   );
-} 
+}  

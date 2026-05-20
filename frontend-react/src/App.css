@@ -3438,3 +3438,168 @@ textarea {
     z-index: 110 !important;
   }
 }
+
+/* =========================================================
+   FINAL SAFE HOTFIX - MAY 2026
+   Only fixes the issues reported after deploy:
+   1) Restore Home/Reports top header width to match Expense/Cashbook/Workers.
+   2) Restore installed iPhone bottom navbar height; undo the 50px shrink rule.
+   3) Keep reports graph dots tappable on iPhone but visually small.
+   4) Make toast status icon a full green/red ring, not a half spinner.
+   ========================================================= */
+
+.farm-toast-ring {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  border-radius: 999px !important;
+  display: inline-block !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+}
+
+.farm-toast-ring-success,
+.farm-toast-ring-loading {
+  border: 3px solid #22c55e !important;
+}
+
+.farm-toast-ring-error {
+  border: 3px solid #ef4444 !important;
+}
+
+.farm-save-click-locked {
+  pointer-events: none !important;
+}
+
+@media (max-width: 430px) {
+  .home-farm-banner,
+  .reports-hero,
+  .report-hero {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    border-radius: 0 0 28px 28px !important;
+  }
+
+  .reports-hero-bg,
+  .report-hero-bg {
+    width: 100% !important;
+    object-fit: cover !important;
+    border-radius: 0 0 28px 28px !important;
+  }
+
+  .reports-graph-box,
+  .reports-graph-scroll,
+  .reports-graph-canvas,
+  .reports-graph-click-layer {
+    touch-action: manipulation !important;
+  }
+
+  .reports-graph-click-layer {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 150 !important;
+    pointer-events: none !important;
+  }
+
+  .reports-graph-dot-button {
+    position: absolute !important;
+    width: 34px !important;
+    height: 34px !important;
+    margin-left: -17px !important;
+    margin-top: -17px !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+    z-index: 170 !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
+  .reports-graph-dot-button::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 8px !important;
+    height: 8px !important;
+    min-width: 8px !important;
+    min-height: 8px !important;
+    transform: translate(-50%, -50%) !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.68) !important;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.38) !important;
+  }
+
+  .reports-chart-tooltip,
+  .reports-chart-guide {
+    z-index: 180 !important;
+    pointer-events: none !important;
+  }
+
+  .app-shell {
+    padding-bottom: calc(116px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .bottom-nav {
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    width: min(430px, calc(100vw - 20px)) !important;
+    height: auto !important;
+    min-height: 78px !important;
+    gap: 4px !important;
+    padding: 9px 10px 12px !important;
+    border-radius: 28px !important;
+  }
+
+  .bottom-nav-item {
+    height: 64px !important;
+    border-radius: 22px !important;
+    gap: 5px !important;
+    padding: 6px 3px !important;
+  }
+
+  .bottom-nav-icon .app-svg-icon {
+    font-size: 23px !important;
+  }
+
+  .bottom-nav-label {
+    font-size: 9.5px !important;
+    line-height: 1.05 !important;
+  }
+}
+
+@media (display-mode: standalone) and (max-width: 430px) {
+  .app-shell {
+    padding-bottom: calc(118px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .bottom-nav {
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    width: min(430px, calc(100vw - 20px)) !important;
+    height: auto !important;
+    min-height: 78px !important;
+    gap: 4px !important;
+    padding: 9px 10px 12px !important;
+    border-radius: 28px !important;
+  }
+
+  .bottom-nav-item {
+    height: 64px !important;
+    border-radius: 22px !important;
+    gap: 5px !important;
+    padding: 6px 3px !important;
+  }
+}
+
+@media (display-mode: standalone) and (orientation: portrait) {
+  .bottom-nav {
+    height: auto !important;
+    min-height: 78px !important;
+    padding: 9px 10px 12px !important;
+  }
+}
