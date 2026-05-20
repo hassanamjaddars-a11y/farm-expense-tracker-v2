@@ -3375,21 +3375,7 @@ textarea {
     box-sizing: border-box !important;
   }
 
-  /* Sales total sales image/card: stop right side from stretching too far */
-  .sales-summary-card {
-    overflow: hidden !important;
-  }
-
-  .sales-produce-art {
-    max-width: 42% !important;
-    right: 8px !important;
-    overflow: hidden !important;
-  }
-
-  .sales-produce-art img {
-    max-width: 100% !important;
-    object-fit: contain !important;
-  }
+  /* Sales total sales image/card: size override removed so Sales page original image sizing is restored. */
 
   /* Reports graph tabs/oval buttons must be tappable on mobile */
   .reports-graph-box,
@@ -3601,5 +3587,156 @@ textarea {
     height: auto !important;
     min-height: 78px !important;
     padding: 9px 10px 12px !important;
+  }
+}
+
+/* =========================================================
+   FINAL HEADER ALIGNMENT RESTORE - HOME + REPORTS ONLY
+   Purpose:
+   1) Home and Reports top header image match Expense/Workers/Cash Book width.
+   2) Home and Reports header height is not smaller from the top.
+   3) Sales Total Sales produce image is no longer shrunk by App.css.
+   Nothing else is changed here.
+   ========================================================= */
+
+@media (max-width: 430px) {
+  .home-farm-banner,
+  .reports-hero,
+  .report-hero {
+    width: calc(100% - 20px) !important;
+    max-width: calc(100% - 20px) !important;
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+    margin-top: 0 !important;
+    min-height: 190px !important;
+    border-radius: 0 0 28px 28px !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  .home-farm-banner::before,
+  .home-farm-banner::after,
+  .reports-hero-bg,
+  .reports-hero-overlay,
+  .report-hero-bg,
+  .report-hero-overlay {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 0 28px 28px !important;
+    object-fit: cover !important;
+  }
+
+  .reports-top-row,
+  .home-hero-top {
+    padding-top: 18px !important;
+  }
+
+  .home-balance-card,
+  .home-current-card,
+  .reports-summary-card,
+  .report-summary-card {
+    width: calc(100% - 20px) !important;
+    max-width: calc(100% - 20px) !important;
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .sales-produce-art {
+    max-width: none !important;
+  }
+
+  .sales-produce-art img {
+    max-width: none !important;
+  }
+}
+
+/* =========================================================
+   FINAL EXACT HEADER MATCH PATCH - HOME + REPORTS ONLY
+   Purpose:
+   - Remove the top cap/gap above Home and Reports headers.
+   - Make Home and Reports header width match Expense/Workers/Cash Book.
+   - Restore normal Sales Total Sales image sizing; no image file touched.
+   ========================================================= */
+
+.home-page,
+.reports-page,
+.report-page {
+  padding-top: 0 !important;
+}
+
+.home-farm-banner,
+.reports-hero,
+.report-hero {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  margin-top: 0 !important;
+  min-height: 190px !important;
+  border-radius: 0 0 28px 28px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.home-farm-banner::before,
+.home-farm-banner::after,
+.reports-hero-bg,
+.reports-hero-overlay,
+.report-hero-bg,
+.report-hero-overlay {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 0 28px 28px !important;
+  object-fit: cover !important;
+}
+
+.home-hero-top,
+.reports-top-row,
+.report-top-row {
+  padding-top: 18px !important;
+}
+
+.home-balance-card,
+.home-current-card,
+.reports-summary-card,
+.report-summary-card {
+  width: calc(100% - 20px) !important;
+  max-width: calc(100% - 20px) !important;
+  margin-left: 10px !important;
+  margin-right: 10px !important;
+  box-sizing: border-box !important;
+}
+
+/* Remove only the App.css shrink override from Sales image. */
+.sales-produce-art {
+  max-width: unset !important;
+  width: auto;
+  right: auto;
+}
+
+.sales-produce-art img {
+  max-width: 100% !important;
+  width: auto;
+  height: auto;
+  object-fit: contain !important;
+}
+
+@media (max-width: 430px) {
+  .home-page,
+  .reports-page,
+  .report-page {
+    padding-top: 0 !important;
+  }
+
+  .home-farm-banner,
+  .reports-hero,
+  .report-hero {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    min-height: 190px !important;
   }
 }
