@@ -1,50 +1,169 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from "../api";
 import toast from "react-hot-toast";
-import "../styles/reports.css";
-import reportsHeaderBackground from "../assets/reports-header-background.png";
 import { useAuth } from "../context/AuthContext";
-import {
-  FaChevronRight,
-  FaGasPump,
-  FaLeaf,
-  FaRegFileAlt,
-  FaSeedling,
-  FaShip,
-  FaTools,
-  FaUserAlt,
-  FaUserTie,
-  FaUsers,
-  FaWallet,
-} from "react-icons/fa";
-import { IoSettingsOutline } from "react-icons/io5";
+import farmPremiumHeader from "../assets/farm-premium-header.png";
+import salesProduceHero from "../assets/sales-produce-hero.png";
+import "../styles/sales.css";
 import {
   attemptSyncPending,
-  buildDashboardWithPending,
-  cacheReportsSnapshot,
-  getDashboardSnapshotWithPending,
+  buildSalesPageWithPending,
+  cacheSalesPageSnapshot,
+  deletePendingSaleLocal,
   getSalesPageSnapshotWithPending,
-  hasDashboardData,
+  isOnlineNow,
+  queueSaleOffline,
+  updatePendingSaleLocal,
 } from "../utils/offlineQueue";
 
-const getInitialReportsData = () => getDashboardSnapshotWithPending();
+const WORKER_PROFILES_STORAGE_KEY = "farm_worker_profiles_v2";
+const SALES_CATEGORY_STORAGE_KEY = "farm_sales_categories_v1";
+const SALES_PAGE_CACHE_KEY = "farm_sales_page_cache_v1";
+
+const EMPTY_SALES_SUMMARY = {
+  totalSales: 0,
+  totalQuantity: 0,
+  grossSalesAmount: 0,
+  ownerIncomeAmount: 0,
+  workersAllocationAmount: 0,
+};
+
+const DEFAULT_SALES_SETTINGS = {
+  murhWeightKg: 20,
+  defaultOwnerSharePercentage: 70,
+  defaultWorkerSharePercentage: 30,
+  currencyLabel: "PKR",
+};
+
+const readSalesPageCache = () => {
+  try {
+    return getSalesPageSnapshotWithPending();
+  } catch (error) {
+    console.error("Sales page cache read error:", error);
+    return {
+      items: [],
+      summary: EMPTY_SALES_SUMMARY,
+      settings: DEFAULT_SALES_SETTINGS,
+      workerRecords: [],
+    };
+  }
+};
+
+const writeSalesPageCache = (payload) => {
+  try {
+    cacheSalesPageSnapshot(payload);
+  } catch (error) {
+    console.error("Sales page cache write error:", error);
+  }
+};
+
+const todayInputValue = () => new Date().toISOString().slice(0, 10);
+
+const defaultSalesCategories = [
+  {
+    id: "crop-sales",
+    name: "Crop Sales",
+    subtitle: "Field crops",
+    icon: "🌾",
+    imageDataUrl: "",
+  },
+  {
+    id: "vegetables",
+    name: "Vegetables",
+    subtitle: "Fresh produce",
+    icon: "🥬",
+    imageDataUrl: "",
+  },
+  {
+    id: "cotton",
+    name: "Cotton",
+    subtitle: "Fiber crop",
+    icon: "☁️",
+    imageDataUrl: "",
+  },
+  {
+    id: "wheat",
+    name: "Wheat",
+    subtitle: "Grain bags",
+    icon: "🌾",
+    imageDataUrl: "",
+  },
+];
+
+const readSalesCategories = () => {
+  try {
+    const raw = localStorage.getItem(SALES_CATEGORY_STORAGE_KEY);
+    const parsed = JSON.parse(raw || "[]");
+
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      return defaultSalesCategories;
+    }
+
+    const merged = [...defaultSalesCategories];
+
+    parsed.forEach((item) => {
+      const existingIndex = merged.findIndex(
+        (category) => normalizeName(category.name) === normalizeName(item?.name)
+      );
+
+      const clean = {
+        id: item?.id || `sales-cat-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: item?.name || "Other",
+        subtitle: item?.subtitle || "Sales category",
+        icon: item?.icon || "🌱",
+        imageDataUrl: item?.imageDataUrl || "",
+      };
+
+      if (existingIndex >= 0) {
+        merged[existingIndex] = { ...merged[existingIndex], ...clean };
+      } else {
+        merged.push(clean);
+      }
+    });
+
+    return merged;
+  } catch (error) {
+    console.error("Sales categories read error:", error);
+    return defaultSalesCategories;
+  }
+};
+
+const writeSalesCategories = (categories) => {
+  localStorage.setItem(SALES_CATEGORY_STORAGE_KEY, JSON.stringify(categories));
+};
+
+const defaultForm = {
+  productName: "",
+  quantity: "",
+  unit: "murh",
+  rate: "",
+  totalAmount: "",
+  ownerSharePercentage: "70",
+  saleDate: todayInputValue(),
+  note: "",
+};
+
+const UNIT_WEIGHT_KG = {
+  murh: 20,
+  maund: 40,
+  kg: 1,
+};
+
+const getUnitWeightKg = (unit) => UNIT_WEIGHT_KG[unit] || 1;
+
+const getUnitHint = (unit) => {
+  if (unit === "maund") return "1 Maund = 40 kg";
+  if (unit === "murh") return "1 Murh = 20 kg";
+  return "Kg selected: write exact kg in Quantity";
+};
 
 const money = (value) => `PKR ${Number(value || 0).toLocaleString()}`;
 
-const formatDateTime = (value) => {
-  if (!value) return "No date";
+const normalizeName = (value = "") =>
+  String(value).trim().replace(/\s+/g, " ").toLowerCase();
 
-  return new Date(value).toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const formatShortDate = (value) => {
+const formatDate = (value) => {
   if (!value) return "No date";
 
   return new Date(value).toLocaleDateString("en-GB", {
@@ -54,251 +173,247 @@ const formatShortDate = (value) => {
   });
 };
 
-const safePercent = (value, total) => {
-  if (!total || total <= 0) return 0;
-  return Math.max(6, Math.round((Number(value || 0) / Math.max(total, 1)) * 100));
+const getSeed = (value = "") =>
+  String(value)
+    .split("")
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+const pick = (arr, seed) => arr[seed % arr.length];
+
+const clampZoom = (value) => {
+  const num = Number(value || 1);
+  if (Number.isNaN(num)) return 1;
+  return Math.min(2.4, Math.max(1, num));
 };
 
-const realPercent = (value, total) => {
-  if (!total || total <= 0) return 0;
-  return Math.round((Number(value || 0) / Math.max(total, 1)) * 100);
+const safeNumber = (value, fallback = 0) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
 };
 
-const normalizeName = (value = "") =>
-  String(value).trim().replace(/\s+/g, " ").toLowerCase();
-
-const dayKey = (value) => {
-  const date = value ? new Date(value) : new Date();
-
-  if (Number.isNaN(date.getTime())) {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  return date.toISOString().slice(0, 10);
-};
-
-const dayLabel = (key) => {
-  const date = new Date(`${key}T00:00:00`);
-
-  return date.toLocaleDateString("en-GB", {
-    day: "2-digit",
-    month: "short",
-  });
-};
-
-const getAmount = (item) =>
-  Number(
-    item?.amount ||
-      item?.total ||
-      item?.value ||
-      item?.netAmount ||
-      item?.grossAmount ||
-      item?.ownerIncomeAmount ||
-      0
-  );
-
-const readArray = (...values) => {
-  for (const value of values) {
-    if (Array.isArray(value)) return value;
-  }
-
-  return [];
-};
-
-const readLocalSalesSnapshot = () => {
+const readWorkerProfiles = () => {
   try {
-    return getSalesPageSnapshotWithPending();
+    const raw = localStorage.getItem(WORKER_PROFILES_STORAGE_KEY);
+    const parsed = JSON.parse(raw || "[]");
+
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed.map((profile) => ({
+      ...profile,
+      photoZoom: clampZoom(profile?.photoZoom),
+      photoX: safeNumber(profile?.photoX, 0),
+      photoY: safeNumber(profile?.photoY, 0),
+    }));
   } catch (error) {
-    console.warn("Reports local sales read error:", error);
-    return { items: [], summary: {} };
+    console.error("Sales worker profile read error:", error);
+    return [];
   }
 };
 
-const uniqueById = (items = []) => {
-  const seen = new Set();
+const getWorkerAvatar = (name = "Worker") => {
+  const seed = getSeed(name);
+  const backgrounds = [
+    ["#dbeafe", "#bfdbfe"],
+    ["#dcfce7", "#bbf7d0"],
+    ["#fef3c7", "#fde68a"],
+    ["#fae8ff", "#f5d0fe"],
+  ];
+  const shirts = ["#2563eb", "#0f766e", "#7c3aed", "#0f172a", "#ea580c"];
+  const hairs = ["#111827", "#334155", "#1f2937", "#475569"];
+  const skins = ["#f2c6a0", "#e9b98f", "#dba77f", "#c98e65"];
 
-  return items.filter((item, index) => {
-    const key =
-      item?._id ||
-      item?.clientId ||
-      `${item?.saleDate || item?.date || item?.createdAt || ""}-${
-        item?.totalAmount || item?.ownerIncomeAmount || item?.amount || ""
-      }-${index}`;
+  const [bgA, bgB] = pick(backgrounds, seed);
+  const shirt = pick(shirts, seed + 1);
+  const hair = pick(hairs, seed + 2);
+  const skin = pick(skins, seed + 3);
 
-    if (seen.has(key)) return false;
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="84" height="84" viewBox="0 0 84 84">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="${bgA}" />
+          <stop offset="100%" stop-color="${bgB}" />
+        </linearGradient>
+      </defs>
+      <circle cx="42" cy="42" r="42" fill="url(#bg)" />
+      <ellipse cx="42" cy="70" rx="22" ry="15" fill="${shirt}" />
+      <circle cx="42" cy="34" r="14" fill="${skin}" />
+      <path d="M28 33c1-10 9-16 14-16 8 0 13 6 14 15-5-4-10-6-15-6-4 0-8 1-13 7z" fill="${hair}" />
+      <circle cx="37" cy="35" r="1.3" fill="#1f2937" />
+      <circle cx="47" cy="35" r="1.3" fill="#1f2937" />
+      <path d="M38 41c2 2 6 2 8 0" stroke="#7c2d12" stroke-width="1.6" stroke-linecap="round" fill="none" />
+    </svg>
+  `;
 
-    seen.add(key);
-    return true;
-  });
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 };
 
-const getSaleIncomeAmount = (item) =>
-  Number(
-    item?.ownerAmount ??
-      item?.ownerIncomeAmount ??
-      item?.grossSalesAmount ??
-      item?.totalAmount ??
-      item?.amount ??
-      0
-  );
 
-const round2 = (value) => Math.round(Number(value || 0) * 100) / 100;
+const FarmLeafLogo = () => (
+  <span className="sales-logo-orb" aria-hidden="true">
+    <svg viewBox="0 0 64 64" fill="none">
+      <path d="M32 50V18" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" />
+      <path d="M32 24c-11-1-18-7-21-16 11 0 19 5 21 16Z" fill="currentColor" opacity="0.95" />
+      <path d="M33 32c10-1 17-6 20-15-10 0-17 5-20 15Z" fill="currentColor" opacity="0.78" />
+      <path d="M32 40c-9-1-15-5-18-13 9 0 15 5 18 13Z" fill="currentColor" opacity="0.72" />
+    </svg>
+  </span>
+);
 
+const SalesIcon = ({ type }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none">
+    {type === "cart" && (
+      <>
+        <path d="M5 7h14l-1.3 7H8L5 7Z" />
+        <path d="M5 7 4.3 4H2.8" />
+        <circle cx="9" cy="19.2" r="1.25" />
+        <circle cx="17" cy="19.2" r="1.25" />
+      </>
+    )}
 
-function FarmPremiumLogoMark() {
-  return (
-    <span className="reports-logo-mark" aria-hidden="true">
-      <svg viewBox="0 0 28 28" fill="none">
-        <path
-          d="M14 23.4V6.2"
-          stroke="currentColor"
-          strokeWidth="2.1"
-          strokeLinecap="round"
-        />
-        <path
-          d="M14 14.2C9.6 14 6.5 11.3 5.5 7.2c4.4 0 7.4 2.5 8.5 7Z"
-          fill="currentColor"
-        />
-        <path
-          d="M14.2 11.2c3.7-2.6 7.4-2.7 10.2-.2-3.4 2.4-7.1 2.4-10.2.2Z"
-          fill="currentColor"
-          opacity="0.92"
-        />
-        <path
-          d="M14 18.8c-4.2-.2-7.8-2.3-9.5-6.1 4.5.2 8 2.4 9.5 6.1Z"
-          fill="currentColor"
-          opacity="0.84"
-        />
-      </svg>
-    </span>
-  );
-}
+    {type === "tag" && (
+      <>
+        <path d="M4.5 12.5 12.8 4.2H19.5v6.7l-8.3 8.3a2 2 0 0 1-2.8 0l-3.9-3.9a2 2 0 0 1 0-2.8Z" />
+        <path d="M16 8h.1" />
+      </>
+    )}
 
-const getExpenseCategoryMeta = (name = "") => {
-  const key = normalizeName(name);
+    {type === "qty" && (
+      <>
+        <path d="M7 6h10v12H7z" />
+        <path d="M9.5 9h5" />
+        <path d="M9.5 12h5" />
+        <path d="M9.5 15h3" />
+      </>
+    )}
 
-  if (key.includes("diesel") || key.includes("fuel")) {
-    return { Icon: FaGasPump, className: "diesel" };
-  }
+    {type === "money" && (
+      <>
+        <path d="M4 7h16v10H4z" />
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+        <path d="M6.5 9h.1" />
+        <path d="M17.5 15h.1" />
+      </>
+    )}
 
-  if (key.includes("fertilizer") || key.includes("urea") || key.includes("khad")) {
-    return { Icon: FaSeedling, className: "fertilizer" };
-  }
+    {type === "calendar" && (
+      <>
+        <path d="M5 5.5h14v14H5z" />
+        <path d="M8 3.5v4" />
+        <path d="M16 3.5v4" />
+        <path d="M5 9h14" />
+      </>
+    )}
 
-  if (key.includes("seed")) {
-    return { Icon: FaLeaf, className: "seeds" };
-  }
+    {type === "note" && (
+      <>
+        <path d="M7 4.5h7l3 3v12H7z" />
+        <path d="M14 4.5v4h4" />
+        <path d="M9.5 12h5" />
+        <path d="M9.5 15h4" />
+      </>
+    )}
 
-  if (key.includes("repair") || key.includes("maintenance")) {
-    return { Icon: FaTools, className: "repair" };
-  }
+    {type === "grid" && (
+      <>
+        <path d="M5 5h5v5H5z" />
+        <path d="M14 5h5v5h-5z" />
+        <path d="M5 14h5v5H5z" />
+        <path d="M14 14h5v5h-5z" />
+      </>
+    )}
+  </svg>
+);
 
-  return { Icon: FaLeaf, className: "other" };
-};
+const Avatar = ({ src, alt, zoom = 1, x = 0, y = 0 }) => (
+  <span className="sales-worker-avatar">
+    <img
+      src={src}
+      alt={alt}
+      style={{
+        transform: `translate(${safeNumber(x, 0)}px, ${safeNumber(y, 0)}px) scale(${clampZoom(
+          zoom
+        )})`,
+      }}
+    />
+  </span>
+);
 
-const getWorkerCategoryMeta = (name = "") => {
-  const key = normalizeName(name);
-
-  if (key.includes("ship")) {
-    return { Icon: FaShip, className: "ship" };
-  }
-
-  if (key.includes("mechanic") || key.includes("repair")) {
-    return { Icon: FaTools, className: "mechanics" };
-  }
-
-  if (key.includes("manager") || key.includes("supervisor")) {
-    return { Icon: FaUserTie, className: "manager" };
-  }
-
-  return { Icon: FaUsers, className: "workers" };
-};
-
-function buildPointPath(values, width, height, padX = 14, padY = 12) {
-  const max = Math.max(...values.map((item) => item.visualValue), 1);
-  const min = Math.min(...values.map((item) => item.visualValue), 0);
-  const range = max - min || 1;
-
-  const points = values.map((item, index) => {
-    const x = padX + index * 44;
-    const y =
-      height -
-      padY -
-      ((item.visualValue - min) * (height - padY * 2)) / range;
-
-    return {
-      ...item,
-      x,
-      y,
-    };
-  });
-
-  const path = points.map((point) => `${point.x},${point.y}`).join(" ");
-
-  return {
-    points,
-    path,
-    width: Math.max(width, padX * 2 + Math.max(values.length - 1, 1) * 44),
-  };
-}
-
-export default function Reports() {
+export default function Sales() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const menuRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const settingsMenuRef = useRef(null);
+  const cachedSalesPage = useMemo(() => readSalesPageCache(), []);
+  const [items, setItems] = useState(cachedSalesPage.items);
+  const [summary, setSummary] = useState(cachedSalesPage.summary);
+  const [settings, setSettings] = useState(cachedSalesPage.settings);
+  const [form, setForm] = useState(defaultForm);
+  const [editingId, setEditingId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [workerRecords, setWorkerRecords] = useState(cachedSalesPage.workerRecords);
+  const [workerProfiles, setWorkerProfiles] = useState(() => readWorkerProfiles());
+  const [selectedWorkerKeys, setSelectedWorkerKeys] = useState([]);
+  const [salesCategories, setSalesCategories] = useState(() => readSalesCategories());
+  const [manageCategories, setManageCategories] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
 
-  const [data, setData] = useState(getInitialReportsData);
-  const [loading, setLoading] = useState(() => !hasDashboardData(getInitialReportsData()));
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [showAllExpenseCats, setShowAllExpenseCats] = useState(false);
-  const [showAllWorkerCats, setShowAllWorkerCats] = useState(false);
-  const [expenseCategories, setExpenseCategories] = useState([]);
-  const [workerCategories, setWorkerCategories] = useState([]);
-  const [openCategoryMenu, setOpenCategoryMenu] = useState(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [graphMode, setGraphMode] = useState("summary");
-  const [activeGraphPoint, setActiveGraphPoint] = useState(null);
-
-  const expenseId = searchParams.get("expenseId") || "";
-  const descriptionFilter = searchParams.get("description") || "";
-  const categoryFilter = searchParams.get("category") || "";
-
-  const workerId = searchParams.get("workerId") || "";
-  const workerNameFilter = searchParams.get("workerName") || "";
-  const workerCategoryFilter = searchParams.get("workerCategory") || "";
-  const activePanel = searchParams.get("panel") || "";
-
-  const initials =
-    user?.name
-      ?.split(" ")
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "FT";
-
-  const fetchReports = async (showOfflineToast = false) => {
+  const fetchSales = async ({ silent = false } = {}) => {
     try {
-      await attemptSyncPending(api);
-
-      const [reportsRes, expenseCatsRes, workerCatsRes] = await Promise.all([
-        api.get("/reports"),
-        api.get("/expense-categories").catch(() => ({ data: [] })),
-        api.get("/worker-categories").catch(() => ({ data: [] })),
+      const [salesRes, settingsRes, workersRes] = await Promise.all([
+        api.get("/sales"),
+        api.get("/settings").catch(() => ({ data: {} })),
+        api.get("/workers").catch(() => ({ data: [] })),
       ]);
 
-      const finalData = buildDashboardWithPending(reportsRes.data);
+      const salesData = salesRes.data || {};
+      const settingsData = settingsRes.data || {};
+      const nextWorkerRecords = Array.isArray(workersRes.data) ? workersRes.data : [];
+      const nextSettings = {
+        ...settings,
+        ...settingsData,
+        currencyLabel: "PKR",
+      };
 
-      setData(finalData);
-      setExpenseCategories(Array.isArray(expenseCatsRes.data) ? expenseCatsRes.data : []);
-      setWorkerCategories(Array.isArray(workerCatsRes.data) ? workerCatsRes.data : []);
-      cacheReportsSnapshot(reportsRes.data);
+      const serverSnapshot = {
+        items: Array.isArray(salesData.items) ? salesData.items : [],
+        summary: salesData.summary || EMPTY_SALES_SUMMARY,
+        settings: nextSettings,
+        workerRecords: nextWorkerRecords,
+      };
+      const mergedSnapshot = buildSalesPageWithPending(serverSnapshot);
+
+      setItems(mergedSnapshot.items);
+      setSummary(mergedSnapshot.summary);
+      setWorkerRecords(nextWorkerRecords);
+      setWorkerProfiles(readWorkerProfiles());
+      setSettings(nextSettings);
+      writeSalesPageCache(serverSnapshot);
+
+      setForm((prev) => {
+        if (editingId) return prev;
+
+        return {
+          ...prev,
+          ownerSharePercentage: String(
+            settingsData.defaultOwnerSharePercentage ??
+              prev.ownerSharePercentage ??
+              70
+          ),
+        };
+      });
     } catch (err) {
-      console.error("Reports fetch error:", err);
-      setData(getInitialReportsData());
+      console.error("Sales fetch error:", err);
+      const offlineSnapshot = getSalesPageSnapshotWithPending();
+      setItems(offlineSnapshot.items);
+      setSummary(offlineSnapshot.summary);
+      setWorkerRecords(offlineSnapshot.workerRecords || []);
+      setSettings(offlineSnapshot.settings || DEFAULT_SALES_SETTINGS);
 
-      if (showOfflineToast) {
-        toast.error("Offline mode: showing saved report data");
+      if (!silent) {
+        toast.error(err?.response?.data?.error || "Offline mode: showing saved sales");
       }
     } finally {
       setLoading(false);
@@ -306,33 +421,44 @@ export default function Reports() {
   };
 
   useEffect(() => {
-    fetchReports(true);
-
-    const handleOnline = () => {
-      fetchReports();
+    const refreshFromLocalCache = () => {
+      const localSnapshot = getSalesPageSnapshotWithPending();
+      setItems(localSnapshot.items);
+      setSummary(localSnapshot.summary);
+      setWorkerRecords(localSnapshot.workerRecords || []);
+      setWorkerProfiles(readWorkerProfiles());
+      setSettings(localSnapshot.settings || DEFAULT_SALES_SETTINGS);
     };
 
-    const closeMenus = () => setOpenCategoryMenu(null);
+    refreshFromLocalCache();
+    fetchSales({ silent: true });
+
+    const handleOnline = async () => {
+      await attemptSyncPending(api);
+      await fetchSales({ silent: true });
+    };
 
     window.addEventListener("online", handleOnline);
-    window.addEventListener("scroll", closeMenus);
+    window.addEventListener("farm-sales-cache-updated", refreshFromLocalCache);
+    window.addEventListener("storage", refreshFromLocalCache);
 
     return () => {
       window.removeEventListener("online", handleOnline);
-      window.removeEventListener("scroll", closeMenus);
+      window.removeEventListener("farm-sales-cache-updated", refreshFromLocalCache);
+      window.removeEventListener("storage", refreshFromLocalCache);
     };
   }, []);
 
   useEffect(() => {
     const handleOutsideClick = (event) => {
-      if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target)) {
-        setSettingsOpen(false);
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
       }
     };
 
     const handleEscape = (event) => {
       if (event.key === "Escape") {
-        setSettingsOpen(false);
+        setMenuOpen(false);
       }
     };
 
@@ -345,694 +471,428 @@ export default function Reports() {
     };
   }, []);
 
-  const openSettingsPanel = () => {
-    const next = new URLSearchParams(searchParams);
-    next.set("panel", "settings");
-    setSearchParams(next);
-    setSettingsOpen(false);
+  const workerDirectory = useMemo(() => {
+    const map = new Map();
+
+    workerProfiles.forEach((profile) => {
+      const key = normalizeName(profile.fullName);
+      if (!key) return;
+
+      map.set(key, {
+        key,
+        fullName: profile.fullName,
+        roleCategory: profile.roleCategory || "Worker",
+        photoDataUrl: profile.photoDataUrl || "",
+        photoZoom: clampZoom(profile.photoZoom),
+        photoX: safeNumber(profile.photoX, 0),
+        photoY: safeNumber(profile.photoY, 0),
+      });
+    });
+
+    workerRecords.forEach((record) => {
+      const name = record.workerName || "";
+      const key = normalizeName(name);
+
+      if (!key || map.has(key)) return;
+
+      map.set(key, {
+        key,
+        fullName: name,
+        roleCategory: record.category?.name || "Worker",
+        photoDataUrl: "",
+        photoZoom: 1,
+        photoX: 0,
+        photoY: 0,
+      });
+    });
+
+    return Array.from(map.values()).sort((a, b) =>
+      a.fullName.localeCompare(b.fullName)
+    );
+  }, [workerProfiles, workerRecords]);
+
+  const ownerShare = Number(form.ownerSharePercentage || 0);
+  const workerShare = Math.max(0, 100 - ownerShare);
+  const quantity = Number(form.quantity || 0);
+  const rate = Number(form.rate || 0);
+  const manualTotal = Number(form.totalAmount || 0);
+
+  const previewTotalAmount =
+    manualTotal > 0 ? manualTotal : quantity > 0 && rate > 0 ? quantity * rate : 0;
+
+  const selectedUnitWeightKg = getUnitWeightKg(form.unit);
+  const previewTotalWeightKg = quantity * selectedUnitWeightKg;
+
+  const previewOwnerAmount = (previewTotalAmount * ownerShare) / 100;
+  const previewWorkerAmount = previewTotalAmount - previewOwnerAmount;
+
+  const selectedWorkers = useMemo(
+    () => workerDirectory.filter((worker) => selectedWorkerKeys.includes(worker.key)),
+    [workerDirectory, selectedWorkerKeys]
+  );
+
+  const filteredItems = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    if (!q) return items;
+
+    return items.filter((item) => {
+      const productName = String(item.productName || "").toLowerCase();
+      const unit = String(item.unit || "").toLowerCase();
+      const totalAmount = String(item.totalAmount || "").toLowerCase();
+      const totalWeightKg = String(item.totalWeightKg || "").toLowerCase();
+      const note = String(item.note || "").toLowerCase();
+      const workerNames = Array.isArray(item.workerSplits)
+        ? item.workerSplits.map((entry) => entry.workerName).join(" ").toLowerCase()
+        : "";
+      const date = item.saleDate
+        ? new Date(item.saleDate).toLocaleString().toLowerCase()
+        : "";
+
+      return (
+        productName.includes(q) ||
+        unit.includes(q) ||
+        totalAmount.includes(q) ||
+        totalWeightKg.includes(q) ||
+        note.includes(q) ||
+        workerNames.includes(q) ||
+        date.includes(q)
+      );
+    });
+  }, [items, search]);
+
+  const toggleWorker = (workerKey) => {
+    setSelectedWorkerKeys((prev) =>
+      prev.includes(workerKey)
+        ? prev.filter((key) => key !== workerKey)
+        : [...prev, workerKey]
+    );
   };
 
-  const closeSettingsPanel = () => {
-    const next = new URLSearchParams(searchParams);
-    next.delete("panel");
-    setSearchParams(next);
+  const selectAllWorkers = () => {
+    if (!workerDirectory.length) {
+      toast.error("No workers saved yet");
+      return;
+    }
+
+    setSelectedWorkerKeys(workerDirectory.map((worker) => worker.key));
   };
+
+  const clearWorkers = () => {
+    setSelectedWorkerKeys([]);
+  };
+
+  const applySalesCategory = (category) => {
+    setForm((prev) => ({
+      ...prev,
+      productName: category.name,
+    }));
+    toast.success(`${category.name} selected`);
+  };
+
+  const saveSalesCategories = (nextCategories) => {
+    setSalesCategories(nextCategories);
+    writeSalesCategories(nextCategories);
+  };
+
+  const addSalesCategory = () => {
+    const cleanName = newCategoryName.trim();
+
+    if (!cleanName) {
+      toast.error("Enter category name");
+      return;
+    }
+
+    const exists = salesCategories.some(
+      (category) => normalizeName(category.name) === normalizeName(cleanName)
+    );
+
+    if (exists) {
+      toast.error("Category already exists");
+      return;
+    }
+
+    const nextCategories = [
+      ...salesCategories,
+      {
+        id: `sales-cat-${Date.now()}`,
+        name: cleanName,
+        subtitle: "Custom sale",
+        icon: "🌱",
+        imageDataUrl: "",
+      },
+    ];
+
+    saveSalesCategories(nextCategories);
+    setNewCategoryName("");
+    toast.success("Sales category added");
+  };
+
+  const updateSalesCategoryImage = (categoryId, file) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const nextCategories = salesCategories.map((category) =>
+        category.id === categoryId
+          ? { ...category, imageDataUrl: String(reader.result || "") }
+          : category
+      );
+
+      saveSalesCategories(nextCategories);
+      toast.success("Category image updated");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const resetForm = () => {
+    setForm({
+      ...defaultForm,
+      ownerSharePercentage: String(
+        settings.defaultOwnerSharePercentage ?? defaultForm.ownerSharePercentage
+      ),
+      saleDate: todayInputValue(),
+    });
+    setSelectedWorkerKeys([]);
+    setEditingId("");
+  };
+
+  const refreshSalesFromOfflineSnapshot = () => {
+    const snapshot = getSalesPageSnapshotWithPending();
+    setItems(snapshot.items);
+    setSummary(snapshot.summary);
+    setWorkerRecords(snapshot.workerRecords || []);
+    setWorkerProfiles(readWorkerProfiles());
+    setSettings(snapshot.settings || DEFAULT_SALES_SETTINGS);
+  };
+
+  const saveSaleOffline = ({ payload, existingId = "" }) => {
+    if (existingId) {
+      const updated = updatePendingSaleLocal({ id: existingId, payload });
+
+      if (!updated) {
+        toast.error("This saved sale cannot be edited while offline");
+        return false;
+      }
+
+      toast.success("Offline sale updated. It will sync when internet returns.");
+    } else {
+      queueSaleOffline(payload);
+      toast.success("Sale saved offline. It will sync when internet returns.");
+    }
+
+    resetForm();
+    refreshSalesFromOfflineSnapshot();
+    return true;
+  };
+
+  const saveSale = async () => {
+    if (!form.productName.trim()) {
+      toast.error("Please enter product name");
+      return;
+    }
+
+    if (!form.quantity || Number(form.quantity) <= 0) {
+      toast.error("Please enter valid quantity");
+      return;
+    }
+
+    if (!form.rate || Number(form.rate) < 0) {
+      toast.error("Please enter valid rate");
+      return;
+    }
+
+    if (ownerShare < 0 || ownerShare > 100) {
+      toast.error("Owner share must be between 0 and 100");
+      return;
+    }
+
+    if (workerShare > 0 && selectedWorkers.length === 0) {
+      toast.error("Please select at least one worker for worker share");
+      return;
+    }
+
+    const payload = {
+      productName: form.productName.trim(),
+      quantity: Number(form.quantity),
+      unit: form.unit,
+      unitWeightKg: selectedUnitWeightKg,
+      rate: Number(form.rate),
+      totalAmount: form.totalAmount ? Number(form.totalAmount) : undefined,
+      ownerSharePercentage: ownerShare,
+      workerSharePercentage: workerShare,
+      saleDate: form.saleDate || todayInputValue(),
+      note: form.note.trim(),
+      distributionMode: "equal",
+      workers: selectedWorkers.map((worker) => ({
+        workerName: worker.fullName,
+      })),
+      billImageUrls: [],
+    };
+
+    const editingItem = items.find(
+      (item) => item?._id === editingId || item?.clientId === editingId
+    );
+    const isEditingPendingSale = Boolean(
+      editingItem?.isPendingSync || String(editingId || "").startsWith("local-sale-")
+    );
+
+    if (!isOnlineNow()) {
+      saveSaleOffline({
+        payload,
+        existingId: editingId && isEditingPendingSale ? editingId : "",
+      });
+      return;
+    }
+
+    try {
+      if (editingId) {
+        if (isEditingPendingSale) {
+          saveSaleOffline({ payload, existingId: editingId });
+          return;
+        }
+
+        await api.put(`/sales/${editingId}`, payload);
+        toast.success("Sale updated");
+      } else {
+        await api.post("/sales", payload);
+        toast.success("Sale added");
+      }
+
+      resetForm();
+      await attemptSyncPending(api);
+      await fetchSales();
+    } catch (err) {
+      console.error("Sales save error:", err);
+
+      const isNetworkFailure =
+        !err?.response ||
+        err?.code === "ERR_NETWORK" ||
+        err?.code === "ECONNABORTED" ||
+        navigator.onLine === false;
+
+      if (isNetworkFailure && !editingId) {
+        saveSaleOffline({ payload });
+        return;
+      }
+
+      if (isNetworkFailure && isEditingPendingSale) {
+        saveSaleOffline({ payload, existingId: editingId });
+        return;
+      }
+
+      toast.error(err?.response?.data?.error || "Failed to save sale");
+    }
+  };
+
+  const startEdit = (item) => {
+    const selectedKeys = Array.isArray(item.workerSplits)
+      ? item.workerSplits
+          .map((entry) => normalizeName(entry.workerName))
+          .filter(Boolean)
+      : [];
+
+    setEditingId(item._id);
+    setSelectedWorkerKeys(selectedKeys);
+
+    setForm({
+      productName: item.productName || "",
+      quantity: item.quantity || "",
+      unit: item.unit || "murh",
+      rate: item.rate || "",
+      totalAmount: item.totalAmount || "",
+      ownerSharePercentage: String(item.ownerSharePercentage ?? 70),
+      saleDate: item.saleDate
+        ? new Date(item.saleDate).toISOString().slice(0, 10)
+        : todayInputValue(),
+      note: item.note || "",
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const deleteSale = async (item) => {
+    const ok = window.confirm("Delete this sale?");
+    if (!ok) return;
+
+    const isPendingSale = Boolean(
+      item?.isPendingSync || String(item?._id || "").startsWith("local-sale-")
+    );
+
+    if (isPendingSale) {
+      deletePendingSaleLocal(item._id || item.clientId);
+      refreshSalesFromOfflineSnapshot();
+      toast.success("Offline sale deleted");
+      return;
+    }
+
+    if (!isOnlineNow()) {
+      toast.error("This sale is already synced. Connect internet to delete it.");
+      return;
+    }
+
+    try {
+      await api.delete(`/sales/${item._id}`);
+      toast.success("Sale deleted");
+      await fetchSales();
+    } catch (err) {
+      console.error("Sales delete error:", err);
+      toast.error(err?.response?.data?.error || "Failed to delete sale");
+    }
+  };
+
+  const initials =
+    user?.name
+      ?.split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "FT";
 
   const handleLogout = () => {
-    setSettingsOpen(false);
+    setMenuOpen(false);
     logout();
     navigate("/login");
   };
 
-  const totalTracked = Number(data.grandTotal || 0);
-  const totalExpenses = Number(data.totalExpenses || 0);
-  const totalWorkers = Number(data.totalWorkers || 0);
-  const totalIncome = Number(
-    data.salesSummary?.ownerIncomeAmount ||
-      data.salesSummary?.grossSalesAmount ||
-      data.totalIncome ||
-      0
-  );
-  const totalOutflow = totalExpenses + totalWorkers;
-  const netProfit = totalIncome - totalOutflow;
-
-  const recentExpenses = readArray(data.recentExpenses, data.expenses);
-  const recentWorkers = readArray(data.recentWorkers, data.workerPayments, data.workers);
-  const localSalesSnapshot = readLocalSalesSnapshot();
-
-  const recentSales = uniqueById([
-    ...readArray(data.recentSales, data.sales, data.recentIncome),
-    ...(Array.isArray(localSalesSnapshot?.items) ? localSalesSnapshot.items : []),
-  ]);
-  const recentCashBook = readArray(data.recentCashBook, data.cashBookEntries, data.recentCash);
-
-  const chart = useMemo(() => {
-    const toSafeDate = (value) => {
-      const date = value ? new Date(value) : new Date();
-      return Number.isNaN(date.getTime()) ? new Date() : date;
-    };
-
-    const events = [];
-
-    const pushEvent = ({ date, income = 0, expenses = 0, workers = 0, cashOut = 0 }) => {
-      const eventDate = toSafeDate(date);
-      const total =
-        Number(income || 0) +
-        Number(expenses || 0) +
-        Number(workers || 0) +
-        Number(cashOut || 0);
-
-      if (total <= 0) return;
-
-      events.push({
-        date: eventDate,
-        key: eventDate.toISOString(),
-        label: dayLabel(eventDate.toISOString().slice(0, 10)),
-        income: Number(income || 0),
-        expenses: Number(expenses || 0),
-        workers: Number(workers || 0),
-        cashOut: Number(cashOut || 0),
-      });
-    };
-
-    recentSales.forEach((item) => {
-      pushEvent({
-        date: item.saleDate || item.date || item.createdAt,
-        income: getSaleIncomeAmount(item),
-      });
-    });
-
-    recentExpenses.forEach((item) => {
-      pushEvent({
-        date: item.date || item.expenseDate || item.createdAt,
-        expenses: getAmount(item),
-      });
-    });
-
-    recentWorkers.forEach((item) => {
-      pushEvent({
-        date: item.date || item.paymentDate || item.createdAt,
-        workers: getAmount(item),
-      });
-    });
-
-    recentCashBook.forEach((item) => {
-      const type = normalizeName(item.type || item.entryType || item.direction || "");
-      const amount = getAmount(item);
-      const date = item.entryDate || item.transactionDate || item.date || item.createdAt;
-
-      if (type.includes("opening")) return;
-
-      if (type.includes("in") || type.includes("income") || type.includes("deposit")) {
-        pushEvent({ date, income: amount });
-      }
-
-      if (type.includes("out") || type.includes("withdraw") || type.includes("spent")) {
-        pushEvent({ date, cashOut: amount });
-      }
-    });
-
-    /*
-      If reports only has totals and no dated records, do NOT place all money
-      on the final point. That caused the ugly straight spike.
-    */
-    if (!events.length) {
-      const today = new Date();
-
-      if (totalIncome > 0) {
-        pushEvent({ date: today, income: totalIncome });
-      }
-
-      if (totalExpenses > 0) {
-        pushEvent({ date: today, expenses: totalExpenses });
-      }
-
-      if (totalWorkers > 0) {
-        pushEvent({ date: today, workers: totalWorkers });
-      }
-    }
-
-    events.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    const hasRealGraphData = events.length > 0;
-
-    let runningIncome = 0;
-    let runningExpenses = 0;
-    let runningWorkers = 0;
-    let runningCashOut = 0;
-
-    let baseRows = events.map((event, index) => {
-      runningIncome += event.income;
-      runningExpenses += event.expenses;
-      runningWorkers += event.workers;
-      runningCashOut += event.cashOut;
-
-      const spent = runningExpenses + runningWorkers + runningCashOut;
-
-      return {
-        key: `${event.key}-${index}`,
-        label: event.label,
-        index,
-        income: round2(runningIncome),
-        expenses: round2(runningExpenses),
-        workers: round2(runningWorkers),
-        cashOut: round2(runningCashOut),
-        spent: round2(spent),
-        totalDetail: round2(runningIncome + spent),
-      };
-    });
-
-    if (!baseRows.length) {
-      baseRows = Array.from({ length: 7 }, (_, index) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - index));
-        const key = date.toISOString().slice(0, 10);
-
-        return {
-          key,
-          label: dayLabel(key),
-          index,
-          income: 0,
-          expenses: 0,
-          workers: 0,
-          cashOut: 0,
-          spent: 0,
-          totalDetail: 0,
-        };
-      });
-    }
-
-    baseRows = baseRows.slice(-14).map((item, index) => ({
-      ...item,
-      index,
-    }));
-
-    const summaryIncomeRows = baseRows.map((item) => ({
-      ...item,
-      series: "Income",
-      value: item.income,
-      visualValue: hasRealGraphData ? item.income : 0,
-    }));
-
-    const summarySpentRows = baseRows.map((item) => ({
-      ...item,
-      series: "Spent",
-      value: item.spent,
-      visualValue: hasRealGraphData ? item.spent : 0,
-    }));
-
-    const expenseRows = baseRows.map((item) => ({
-      ...item,
-      series: "Expenses",
-      value: item.expenses,
-      visualValue: hasRealGraphData ? item.expenses : 0,
-    }));
-
-    const workerRows = baseRows.map((item) => ({
-      ...item,
-      series: "Workers",
-      value: item.workers,
-      visualValue: hasRealGraphData ? item.workers : 0,
-    }));
-
-    const cashOutRows = baseRows.map((item) => ({
-      ...item,
-      series: "Cash Out",
-      value: item.cashOut,
-      visualValue: hasRealGraphData ? item.cashOut : 0,
-    }));
-
-    const chartHeight = 116;
-    const pointSpacing = baseRows.length <= 7 ? 58 : 44;
-    const svgWidth = Math.max(300, 36 + Math.max(baseRows.length - 1, 1) * pointSpacing);
-    const finalWidth = Math.max(610, svgWidth);
-
-    const allValues =
-      graphMode === "summary"
-        ? [...summaryIncomeRows, ...summarySpentRows]
-        : [...summaryIncomeRows, ...expenseRows, ...workerRows, ...cashOutRows];
-
-    const maxVisual = Math.max(
-      ...allValues.map((item) => Number(item.visualValue || 0)),
-      1
-    );
-
-    const paddedMax = maxVisual * 1.28;
-
-    const normalizeRows = (rows) => {
-      const points = rows.map((item, index) => {
-        const value = Number(item.visualValue || 0);
-        const x = 18 + index * pointSpacing;
-        const y = 104 - (value / paddedMax) * 82;
-
-        return {
-          ...item,
-          x,
-          y: Math.max(16, Math.min(104, y)),
-        };
-      });
-
-      return {
-        points,
-        path: points.map((point) => `${point.x},${point.y}`).join(" "),
-        width: finalWidth,
-      };
-    };
-
-    return {
-      days: baseRows.map((item) => item.key),
-      rows: baseRows,
-      hasRealGraphData,
-      income: normalizeRows(summaryIncomeRows),
-      spent: normalizeRows(summarySpentRows),
-      expenses: normalizeRows(expenseRows),
-      workers: normalizeRows(workerRows),
-      cashOut: normalizeRows(cashOutRows),
-      svgWidth: finalWidth,
-      svgHeight: chartHeight,
-    };
-  }, [
-    graphMode,
-    recentSales,
-    recentExpenses,
-    recentWorkers,
-    recentCashBook,
-    totalIncome,
-    totalExpenses,
-    totalWorkers,
-  ]);
-
-  useEffect(() => {
-    if (!chart.hasRealGraphData) {
-      setActiveGraphPoint(null);
-      return;
-    }
-
-    const activeSeries =
-      graphMode === "summary" ? chart.income.points : chart.expenses.points;
-
-    if (!activeGraphPoint && activeSeries?.length) {
-      const point = activeSeries[Math.max(activeSeries.length - 4, 0)];
-      setActiveGraphPoint(point);
-    }
-  }, [chart, graphMode, activeGraphPoint]);
-
-  useEffect(() => {
-    setActiveGraphPoint(null);
-  }, [graphMode]);
-
-  const visibleExpenseCategories = showAllExpenseCats
-    ? data.expenseByCategory || []
-    : (data.expenseByCategory || []).slice(0, 4);
-
-  const visibleWorkerCategories = showAllWorkerCats
-    ? data.workerByCategory || []
-    : (data.workerByCategory || []).slice(0, 4);
-
-  const highlightedExpenses = useMemo(() => {
-    let items = data.recentExpenses || [];
-
-    if (expenseId) {
-      const exact = items.filter((item) => item._id === expenseId);
-      if (exact.length > 0) return exact;
-    }
-
-    if (descriptionFilter || categoryFilter) {
-      items = items.filter((item) => {
-        const description = item.description?.toLowerCase() || "";
-        const category = item.category?.name?.toLowerCase() || "";
-
-        const matchDescription = descriptionFilter
-          ? description.includes(descriptionFilter.toLowerCase())
-          : true;
-
-        const matchCategory = categoryFilter
-          ? category.includes(categoryFilter.toLowerCase())
-          : true;
-
-        return matchDescription && matchCategory;
-      });
-    }
-
-    return items;
-  }, [data.recentExpenses, expenseId, descriptionFilter, categoryFilter]);
-
-  const highlightedWorkers = useMemo(() => {
-    let items = data.recentWorkers || [];
-
-    if (workerId) {
-      const exact = items.filter((item) => item._id === workerId);
-      if (exact.length > 0) return exact;
-    }
-
-    if (workerNameFilter || workerCategoryFilter) {
-      items = items.filter((item) => {
-        const workerName = item.workerName?.toLowerCase() || "";
-        const category = item.category?.name?.toLowerCase() || "";
-
-        const matchWorkerName = workerNameFilter
-          ? workerName.includes(workerNameFilter.toLowerCase())
-          : true;
-
-        const matchCategory = workerCategoryFilter
-          ? category.includes(workerCategoryFilter.toLowerCase())
-          : true;
-
-        return matchWorkerName && matchCategory;
-      });
-    }
-
-    return items;
-  }, [data.recentWorkers, workerId, workerNameFilter, workerCategoryFilter]);
-
-  const resolveExpenseCategory = (item) =>
-    expenseCategories.find(
-      (cat) =>
-        cat._id === item?._id ||
-        String(cat.name || "").trim().toLowerCase() ===
-          String(item?.name || "").trim().toLowerCase()
-    );
-
-  const resolveWorkerCategory = (item) =>
-    workerCategories.find(
-      (cat) =>
-        cat._id === item?._id ||
-        String(cat.name || "").trim().toLowerCase() ===
-          String(item?.name || "").trim().toLowerCase()
-    );
-
-  const renameExpenseCategory = async (categoryId, currentName) => {
-    const nextName = window.prompt("Edit expense category name", currentName);
-    if (nextName === null) return;
-
-    const cleanName = String(nextName).trim();
-
-    if (!cleanName) {
-      toast.error("Category name is required");
-      return;
-    }
-
-    try {
-      await api.put(`/expense-categories/${categoryId}`, { name: cleanName });
-      toast.success("Expense category updated");
-      setOpenCategoryMenu(null);
-      await fetchReports();
-    } catch (err) {
-      console.error("Reports expense category rename error:", err);
-      toast.error(err?.response?.data?.error || "Failed to update category");
-    }
-  };
-
-  const deleteExpenseCategory = async (categoryId, currentName) => {
-    const ok = window.confirm(`Delete expense category "${currentName}"?`);
-    if (!ok) return;
-
-    try {
-      await api.delete(`/expense-categories/${categoryId}`);
-      toast.success("Expense category deleted");
-      setOpenCategoryMenu(null);
-      await fetchReports();
-    } catch (err) {
-      console.error("Reports expense category delete error:", err);
-      toast.error(err?.response?.data?.error || "Failed to delete category");
-    }
-  };
-
-  const renameWorkerCategory = async (categoryId, currentName) => {
-    const nextName = window.prompt("Edit worker category name", currentName);
-    if (nextName === null) return;
-
-    const cleanName = String(nextName).trim();
-
-    if (!cleanName) {
-      toast.error("Category name is required");
-      return;
-    }
-
-    try {
-      await api.put(`/worker-categories/${categoryId}`, { name: cleanName });
-      toast.success("Worker category updated");
-      setOpenCategoryMenu(null);
-      await fetchReports();
-    } catch (err) {
-      console.error("Reports worker category rename error:", err);
-      toast.error(err?.response?.data?.error || "Failed to update category");
-    }
-  };
-
-  const deleteWorkerCategory = async (categoryId, currentName) => {
-    const ok = window.confirm(`Delete worker category "${currentName}"?`);
-    if (!ok) return;
-
-    try {
-      await api.delete(`/worker-categories/${categoryId}`);
-      toast.success("Worker category deleted");
-      setOpenCategoryMenu(null);
-      await fetchReports();
-    } catch (err) {
-      console.error("Reports worker category delete error:", err);
-      toast.error(err?.response?.data?.error || "Failed to delete category");
-    }
-  };
-
-  const renderCategoryRow = (item, index, type) => {
-    const isExpense = type === "expense";
-    const totalBase = isExpense ? totalExpenses : totalWorkers;
-    const percentWidth = safePercent(item.total, totalBase);
-    const percentText = realPercent(item.total, totalBase);
-    const meta = isExpense
-      ? getExpenseCategoryMeta(item.name)
-      : getWorkerCategoryMeta(item.name);
-    const Icon = meta.Icon;
-    const realCategory = isExpense ? resolveExpenseCategory(item) : resolveWorkerCategory(item);
-    const menuKey = realCategory?._id || `${type}-${item.name}-${index}`;
-
-    return (
-      <article key={`${type}-cat-${item.name}-${index}`} className="reports-category-row">
-        <div className={`reports-category-icon ${isExpense ? "expense" : "worker"} ${meta.className}`}>
-          <Icon />
-        </div>
-
-        <div className="reports-category-main">
-          <div className="reports-category-top">
-            <strong>{item.name || "Uncategorized"}</strong>
-
-            <div className="reports-category-actions">
-              <span>{money(item.total)}</span>
-
-              {realCategory ? (
-                <div className="reports-menu-wrap">
-                  <button
-                    type="button"
-                    className="reports-menu-btn"
-                    onClick={() =>
-                      setOpenCategoryMenu((prev) => (prev === menuKey ? null : menuKey))
-                    }
-                    aria-label="Open category menu"
-                  >
-                    ⋯
-                  </button>
-
-                  {openCategoryMenu === menuKey ? (
-                    <div className="reports-menu">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          isExpense
-                            ? renameExpenseCategory(realCategory._id, realCategory.name)
-                            : renameWorkerCategory(realCategory._id, realCategory.name)
-                        }
-                      >
-                        Edit category
-                      </button>
-
-                      <button
-                        type="button"
-                        className="danger"
-                        onClick={() =>
-                          isExpense
-                            ? deleteExpenseCategory(realCategory._id, realCategory.name)
-                            : deleteWorkerCategory(realCategory._id, realCategory.name)
-                        }
-                      >
-                        Delete category
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="reports-category-meter">
-            <div
-              className={isExpense ? "expense" : "worker"}
-              style={{ width: `${percentWidth}%` }}
-            />
-          </div>
-
-          <div className="reports-category-bottom">
-            <small>
-              {item.count || 0} record{item.count === 1 ? "" : "s"}
-            </small>
-            <small>{percentText}%</small>
-          </div>
-        </div>
-      </article>
-    );
-  };
-
-  const renderRecentExpense = (item) => {
-    const categoryName = item.category?.name || "Uncategorized";
-    const meta = getExpenseCategoryMeta(categoryName);
-    const Icon = meta.Icon;
-
-    return (
-      <article key={item._id} className="reports-record-row">
-        <div className={`reports-record-icon expense ${meta.className}`}>
-          <Icon />
-        </div>
-
-        <div className="reports-record-main">
-          <strong>{item.description || "Expense"}</strong>
-          <span>{formatShortDate(item.createdAt)}</span>
-        </div>
-
-        <b className="negative">-{money(item.amount)}</b>
-        <FaChevronRight className="reports-row-arrow" />
-      </article>
-    );
-  };
-
-  const renderRecentWorker = (item) => {
-    const categoryName = item.category?.name || "Uncategorized";
-    const meta = getWorkerCategoryMeta(categoryName);
-    const Icon = meta.Icon;
-
-    return (
-      <article key={item._id} className="reports-record-row">
-        <div className={`reports-record-icon worker ${meta.className}`}>
-          <Icon />
-        </div>
-
-        <div className="reports-record-main">
-          <strong>{item.workerName || "Worker"}</strong>
-          <span>{formatShortDate(item.createdAt)}</span>
-        </div>
-
-        <b className="negative">-{money(item.amount)}</b>
-        <FaChevronRight className="reports-row-arrow" />
-      </article>
-    );
-  };
-
-  const renderGraphLine = (line, className) => (
-    <>
-      <polyline points={line.path} className={className} />
-
-      {line.points.map((point) => (
-        <button
-          key={`${className}-${point.series}-${point.key}`}
-          type="button"
-          className="reports-graph-dot-button"
-          style={{
-            left: `${point.x}px`,
-            top: `${point.y}px`,
-          }}
-          onClick={() => setActiveGraphPoint(point)}
-          aria-label={`${point.series} ${point.label} ${money(point.value)}`}
-        />
-      ))}
-    </>
-  );
-
-  const activePoint = chart.hasRealGraphData
-    ? activeGraphPoint || chart.income.points[Math.max(chart.income.points.length - 4, 0)]
-    : null;
-
   return (
-    <div className={`reports-page${settingsOpen ? " reports-menu-open" : ""}`}>
-      {activePanel === "settings" ? (
-        <section className="reports-panel reports-settings-panel">
-          <div className="reports-section-head">
-            <div>
-              <h3>Settings</h3>
-              <p>Profile, security, install, and app options.</p>
-            </div>
-
-            <button type="button" onClick={closeSettingsPanel}>
-              Close
-            </button>
-          </div>
-
-          <div className="reports-settings-grid">
-            <div>
-              <span>👤</span>
-              <strong>Profile</strong>
-              <p>Manage account details later.</p>
-            </div>
-
-            <div>
-              <span>🔐</span>
-              <strong>Login & Security</strong>
-              <p>Password and protection controls.</p>
-            </div>
-
-            <div>
-              <span>📊</span>
-              <strong>Reports</strong>
-              <p>Filters and report preferences.</p>
-            </div>
-
-            <div>
-              <span>📱</span>
-              <strong>Install App</strong>
-              <p>PWA and offline options.</p>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
-      <section className="reports-hero">
+    <div className="sales-page">
+      <section className="sales-farm-header">
         <img
-          src={reportsHeaderBackground}
-          alt=""
-          className="reports-hero-bg"
-          aria-hidden="true"
+          className="sales-header-image"
+          src={farmPremiumHeader}
+          alt="Farm fields and tractor"
         />
-        <div className="reports-hero-overlay" />
+        <div className="sales-header-shade" />
 
-        <div className="reports-top-row">
-          <div className="reports-brand">
-            <div className="reports-brand-mark">
-              <FarmPremiumLogoMark />
-            </div>
-
-            <div className="reports-brand-copy">
-              <strong>Farm Expense Tracker</strong>
-              <span>Expenses, workers, reports</span>
+        <div className="sales-brand-row">
+          <div className="sales-brand-left">
+            <FarmLeafLogo />
+            <div className="sales-brand-copy">
+              <h1>Farm Expense Tracker</h1>
+              <p>Expenses, workers, reports</p>
             </div>
           </div>
 
-          <div className="reports-settings-wrap" ref={settingsMenuRef}>
+          <div className="sales-menu-wrap" ref={menuRef}>
             <button
               type="button"
-              className="reports-settings-button"
-              aria-label="Settings"
-              aria-expanded={settingsOpen}
-              onClick={() => setSettingsOpen((prev) => !prev)}
+              className="sales-settings-button"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              aria-label="Open settings menu"
+              aria-expanded={menuOpen}
             >
-              <IoSettingsOutline />
+              ⚙
             </button>
 
-            {settingsOpen && (
-              <div className="premium-profile-dropdown reports-profile-dropdown">
+            {menuOpen ? (
+              <div className="premium-profile-dropdown sales-profile-dropdown">
                 <div className="premium-profile-head">
                   <div className="premium-profile-avatar">{initials}</div>
 
                   <div>
                     <strong>{user?.name || "User"}</strong>
-                    <span>{user?.email || "No email"}</span>
+                    <span>{user?.email || "Signed in"}</span>
                   </div>
                 </div>
 
@@ -1040,7 +900,7 @@ export default function Reports() {
                   <button
                     type="button"
                     onClick={() => {
-                      setSettingsOpen(false);
+                      setMenuOpen(false);
                       navigate("/");
                     }}
                   >
@@ -1054,7 +914,7 @@ export default function Reports() {
                   <button
                     type="button"
                     onClick={() => {
-                      setSettingsOpen(false);
+                      setMenuOpen(false);
                       navigate("/reports");
                     }}
                   >
@@ -1068,7 +928,8 @@ export default function Reports() {
                   <button
                     type="button"
                     onClick={() => {
-                      openSettingsPanel();
+                      setMenuOpen(false);
+                      navigate("/reports?panel=settings");
                     }}
                   >
                     <span>⚙️</span>
@@ -1087,441 +948,470 @@ export default function Reports() {
                   </button>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 
-        <div className="reports-title-row">
-          <div className="reports-title-icon">
-            <FaRegFileAlt />
-          </div>
-
-          <div className="reports-title-copy">
-            <h2>Reports</h2>
-          </div>
+        <div className="sales-page-title">
+          <span className="sales-page-icon">
+            <SalesIcon type="cart" />
+          </span>
+          <h2>Sales</h2>
         </div>
       </section>
 
-      <section className="reports-summary-card">
-        <div className="reports-summary-left">
-          <span>Total Tracked</span>
-          <h3>{loading ? "—" : money(totalTracked)}</h3>
-
-          <div className="reports-summary-split">
-            <div>
-              <span className="reports-split-icon">
-                <FaWallet />
-              </span>
-
-              <span className="reports-split-line" />
-
-              <div>
-                <small>Expenses</small>
-                <strong>{loading ? "—" : money(totalExpenses)}</strong>
-              </div>
-            </div>
-
-            <div>
-              <span className="reports-split-icon">
-                <FaUsers />
-              </span>
-
-              <span className="reports-split-line" />
-
-              <div>
-                <small>Workers</small>
-                <strong>{loading ? "—" : money(totalWorkers)}</strong>
-              </div>
-            </div>
-          </div>
+      <section className="sales-summary-card">
+        <div className="sales-summary-copy">
+          <span>Total Sales</span>
+          <h3>{loading ? "—" : money(summary.grossSalesAmount)}</h3>
+          <p>{loading ? "Loading..." : `${summary.totalSales || 0} saved records`}</p>
         </div>
 
-        <div className="reports-graph-box">
-          <div className="reports-graph-top">
-            <div className="reports-graph-tabs" role="tablist" aria-label="Graph mode">
-              <button
-                type="button"
-                className={graphMode === "summary" ? "active" : ""}
-                onClick={() => setGraphMode("summary")}
-              >
-                Total
-              </button>
+        <div className="sales-produce-art" aria-hidden="true">
+          <img src={salesProduceHero} alt="" />
+        </div>
 
-              <button
-                type="button"
-                className={graphMode === "detail" ? "active" : ""}
-                onClick={() => setGraphMode("detail")}
-              >
-                Detail
-              </button>
-            </div>
+        <div className="sales-trend-line">
+          <span>↗</span>
+          <strong>{money(summary.ownerIncomeAmount)}</strong>
+          <small>owner income</small>
+        </div>
+      </section>
 
-            <span>
-              Net {netProfit >= 0 ? "+" : "-"} {money(Math.abs(netProfit))}
+      <section className="sales-tabs">
+        <button type="button" onClick={() => navigate("/cash-book")}>
+          Cash Book
+        </button>
+
+        <button type="button" className="active">
+          Sales
+        </button>
+
+        <button
+          type="button"
+          onClick={() => toast("Profit Share will be available in future updates.")}
+        >
+          Profit Share
+        </button>
+      </section>
+
+      <section className="sales-panel sales-categories-panel sales-categories-compact">
+        <div className="sales-section-head">
+          <div className="sales-title-row compact">
+            <span className="sales-section-icon soft">
+              <SalesIcon type="grid" />
             </span>
-          </div>
-
-          <div className="reports-graph-scroll">
-            <div
-              className="reports-graph-canvas"
-              style={{ width: `${chart.svgWidth}px` }}
-            >
-              {activePoint && (
-                <div
-                  className="reports-chart-tooltip"
-                  style={{
-                    left: `${Math.max(8, Math.min(activePoint.x - 52, chart.svgWidth - 112))}px`,
-                    top: `${Math.max(8, activePoint.y - 58)}px`,
-                  }}
-                >
-                  <strong>{activePoint.label}</strong>
-                  <span>{activePoint.series}</span>
-                  <b>{money(activePoint.value)}</b>
-                </div>
-              )}
-
-              {activePoint && (
-                <span
-                  className="reports-chart-guide"
-                  style={{ left: `${activePoint.x}px` }}
-                />
-              )}
-
-              <svg
-                className="reports-graph"
-                viewBox={`0 0 ${chart.svgWidth} ${chart.svgHeight}`}
-                preserveAspectRatio="none"
-              >
-                <line x1="12" y1="18" x2={chart.svgWidth - 12} y2="18" className="grid" />
-                <line x1="12" y1="48" x2={chart.svgWidth - 12} y2="48" className="grid" />
-                <line x1="12" y1="78" x2={chart.svgWidth - 12} y2="78" className="grid" />
-                <line x1="12" y1="106" x2={chart.svgWidth - 12} y2="106" className="axis" />
-
-                {chart.hasRealGraphData ? (
-                  graphMode === "summary" ? (
-                    <>
-                      <polyline points={chart.income.path} className="income-line" />
-                      <polyline points={chart.spent.path} className="spent-line" />
-                    </>
-                  ) : (
-                    <>
-                      <polyline points={chart.income.path} className="income-line" />
-                      <polyline points={chart.expenses.path} className="expense-line" />
-                      <polyline points={chart.workers.path} className="worker-line" />
-                      <polyline points={chart.cashOut.path} className="cashout-line" />
-                    </>
-                  )
-                ) : null}
-              </svg>
-
-              {chart.hasRealGraphData ? (
-                <div className="reports-graph-click-layer">
-                  {graphMode === "summary" ? (
-                    <>
-                      {renderGraphLine(chart.income, "income-hit")}
-                      {renderGraphLine(chart.spent, "spent-hit")}
-                    </>
-                  ) : (
-                    <>
-                      {renderGraphLine(chart.income, "income-hit")}
-                      {renderGraphLine(chart.expenses, "expense-hit")}
-                      {renderGraphLine(chart.workers, "worker-hit")}
-                      {renderGraphLine(chart.cashOut, "cashout-hit")}
-                    </>
-                  )}
-                </div>
-              ) : (
-                <div className="reports-graph-empty-state">
-                  <strong>No graph data yet</strong>
-                  <span>Add expense, worker, sales, or cash entries to build this graph.</span>
-                </div>
-              )}
-
-              <div className="reports-graph-dates">
-                {chart.rows.map((item) => (
-                  <span key={item.key} style={{ left: `${18 + item.index * 44}px` }}>
-                    {item.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {chart.hasRealGraphData ? (
-            <div className="reports-graph-legend">
-              {graphMode === "summary" ? (
-                <>
-                  <span className="income">Income</span>
-                  <span className="spent">Spent</span>
-                </>
-              ) : (
-                <>
-                  <span className="income">Income</span>
-                  <span className="expense">Expenses</span>
-                  <span className="worker">Workers</span>
-                  <span className="cashout">Cash Out</span>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="reports-graph-legend reports-graph-legend-empty">
-              <span>Graph is empty</span>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="reports-entry-grid">
-        <article className="reports-entry-card">
-          <div className="reports-entry-icon expense">
-            <FaRegFileAlt />
-          </div>
-
-          <div>
-            <span>Expense Entries</span>
-            <strong>{data.totalExpenseEntries || 0}</strong>
-            <small>This period</small>
-          </div>
-
-          <FaChevronRight />
-        </article>
-
-        <article className="reports-entry-card">
-          <div className="reports-entry-icon worker">
-            <FaUsers />
-          </div>
-
-          <div>
-            <span>Worker Entries</span>
-            <strong>{data.totalWorkerEntries || 0}</strong>
-            <small>This period</small>
-          </div>
-
-          <FaChevronRight />
-        </article>
-      </section>
-
-      <section className="reports-two-grid">
-        <article className="reports-panel reports-list-panel">
-          <div className="reports-card-head">
-            <h3>Expense Categories</h3>
-
-            {(data.expenseByCategory || []).length > 4 ? (
-              <button
-                type="button"
-                onClick={() => setShowAllExpenseCats((prev) => !prev)}
-              >
-                {showAllExpenseCats ? "View less" : "View all"}
-                <FaChevronRight />
-              </button>
-            ) : null}
-          </div>
-
-          {loading ? (
-            <div className="reports-empty">Loading categories...</div>
-          ) : visibleExpenseCategories.length === 0 ? (
-            <div className="reports-empty">No expense categories</div>
-          ) : (
-            <div className="reports-category-list">
-              {visibleExpenseCategories.map((item, index) =>
-                renderCategoryRow(item, index, "expense")
-              )}
-            </div>
-          )}
-
-          <div className="reports-total-strip expense">
-            <span>Total Expenses</span>
-            <strong>{money(totalExpenses)}</strong>
-          </div>
-        </article>
-
-        <article className="reports-panel reports-list-panel">
-          <div className="reports-card-head">
-            <h3>Worker Categories</h3>
-
-            {(data.workerByCategory || []).length > 4 ? (
-              <button
-                type="button"
-                onClick={() => setShowAllWorkerCats((prev) => !prev)}
-              >
-                {showAllWorkerCats ? "View less" : "View all"}
-                <FaChevronRight />
-              </button>
-            ) : null}
-          </div>
-
-          {loading ? (
-            <div className="reports-empty">Loading categories...</div>
-          ) : visibleWorkerCategories.length === 0 ? (
-            <div className="reports-empty">No worker categories</div>
-          ) : (
-            <div className="reports-category-list">
-              {visibleWorkerCategories.map((item, index) =>
-                renderCategoryRow(item, index, "worker")
-              )}
-            </div>
-          )}
-
-          <div className="reports-total-strip worker">
-            <span>Total Worker Payments</span>
-            <strong>{money(totalWorkers)}</strong>
-          </div>
-        </article>
-      </section>
-
-      {!loading && (descriptionFilter || categoryFilter || expenseId) ? (
-        <section className="reports-panel reports-detail-panel">
-          <div className="reports-section-head">
             <div>
-              <h3>Expense Detail</h3>
-              <p>Opened from recent activity.</p>
+              <h3>Sales Categories</h3>
+              <p>Tap a category to fill product name. Upload images for your own look.</p>
             </div>
           </div>
 
-          {highlightedExpenses.length === 0 ? (
-            <div className="reports-empty">No matching expense found</div>
-          ) : (
-            <div className="reports-record-list">
-              {highlightedExpenses.map((item) => (
-                <article key={item._id} className="reports-detail-record">
-                  <span className="expense">
-                    <FaWallet />
-                  </span>
-
-                  <div>
-                    <strong>{item.description || "Expense"}</strong>
-                    <small>Category: {item.category?.name || "Uncategorized"}</small>
-                    <small>Created: {formatDateTime(item.createdAt)}</small>
-                  </div>
-
-                  <b className="negative">-{money(item.amount)}</b>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      ) : null}
-
-      {!loading && (workerNameFilter || workerCategoryFilter || workerId) ? (
-        <section className="reports-panel reports-detail-panel">
-          <div className="reports-section-head">
-            <div>
-              <h3>Worker Payment Detail</h3>
-              <p>Opened from recent activity.</p>
-            </div>
-          </div>
-
-          {highlightedWorkers.length === 0 ? (
-            <div className="reports-empty">No matching worker payment found</div>
-          ) : (
-            <div className="reports-record-list">
-              {highlightedWorkers.map((item) => (
-                <article key={item._id} className="reports-detail-record">
-                  <span className="worker">
-                    <FaUserAlt />
-                  </span>
-
-                  <div>
-                    <strong>{item.workerName || "Worker"}</strong>
-                    <small>Category: {item.category?.name || "Uncategorized"}</small>
-                    <small>{item.description || "No description added"}</small>
-                    <small>Created: {formatDateTime(item.createdAt)}</small>
-                  </div>
-
-                  <b className="negative">-{money(item.amount)}</b>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      ) : null}
-
-      <section className="reports-two-grid">
-        <article className="reports-panel reports-list-panel">
-          <div className="reports-card-head">
-            <h3>Recent Expenses</h3>
-
-            {(data.recentExpenses || []).length > 4 ? (
-              <button type="button">
-                View all
-                <FaChevronRight />
-              </button>
-            ) : null}
-          </div>
-
-          {loading ? (
-            <div className="reports-empty">Loading recent expenses...</div>
-          ) : (data.recentExpenses || []).length === 0 ? (
-            <div className="reports-empty">No recent expense records</div>
-          ) : (
-            <div className="reports-record-list">
-              {(data.recentExpenses || []).slice(0, 4).map(renderRecentExpense)}
-            </div>
-          )}
-        </article>
-
-        <article className="reports-panel reports-list-panel">
-          <div className="reports-card-head">
-            <h3>Recent Worker Payments</h3>
-
-            {(data.recentWorkers || []).length > 4 ? (
-              <button type="button">
-                View all
-                <FaChevronRight />
-              </button>
-            ) : null}
-          </div>
-
-          {loading ? (
-            <div className="reports-empty">Loading worker payments...</div>
-          ) : (data.recentWorkers || []).length === 0 ? (
-            <div className="reports-empty">No recent worker records</div>
-          ) : (
-            <div className="reports-record-list">
-              {(data.recentWorkers || []).slice(0, 4).map(renderRecentWorker)}
-            </div>
-          )}
-        </article>
-      </section>
-
-      <section className="reports-panel reports-overview-panel">
-        <div className="reports-section-head">
-          <div>
-            <h3>Overview</h3>
-            <p>Quick financial read for this account.</p>
-          </div>
-
-          <button type="button" onClick={() => fetchReports()}>
-            Refresh
+          <button
+            type="button"
+            className="sales-text-btn"
+            onClick={() => setManageCategories((prev) => !prev)}
+          >
+            {manageCategories ? "Done" : "Manage"} ›
           </button>
         </div>
 
-        <div className="reports-overview-grid">
+        <div className="sales-category-grid">
+          {salesCategories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              className="sales-category-tile"
+              onClick={() => applySalesCategory(category)}
+            >
+              <span className="sales-category-icon">
+                {category.imageDataUrl ? (
+                  <img src={category.imageDataUrl} alt={category.name} />
+                ) : (
+                  category.icon || "🌱"
+                )}
+              </span>
+              <div>
+                <strong>{category.name}</strong>
+                <small>{category.subtitle || "Sale category"}</small>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {manageCategories ? (
+          <div className="sales-manage-box">
+            <div>
+              <h4>Add or update sales categories</h4>
+              <p>Images stay saved in this browser for quick farm-style category tiles.</p>
+            </div>
+
+            <div className="sales-add-category-row">
+              <input
+                type="text"
+                placeholder="New category name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+              />
+              <button type="button" onClick={addSalesCategory}>Add</button>
+            </div>
+
+            <div className="sales-image-manage-grid">
+              {salesCategories.map((category) => (
+                <label key={category.id} className="sales-image-upload">
+                  <span>{category.imageDataUrl ? "Change" : "Upload"}</span>
+                  <strong>{category.name}</strong>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      updateSalesCategoryImage(category.id, e.target.files?.[0])
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+
+      <section className="sales-panel sales-add-panel">
+        <div className="sales-section-head">
+          <div className="sales-title-row">
+            <span className="sales-section-icon">
+              <SalesIcon type="tag" />
+            </span>
+            <div>
+              <h3>{editingId ? "Edit Sale" : "Add Sale"}</h3>
+              <p>
+                Murh = 20 kg, Maund = 40 kg, and Kg uses the quantity as exact weight. Owner and worker share calculate automatically.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="sales-preview-grid">
           <div>
-            <span>Total Income</span>
-            <strong className="positive">{money(totalIncome)}</strong>
+            <span>Total sale</span>
+            <strong>{money(previewTotalAmount)}</strong>
           </div>
 
           <div>
-            <span>Total Expenses</span>
-            <strong className="negative">{money(totalExpenses)}</strong>
+            <span>Owner gets</span>
+            <strong>{money(previewOwnerAmount)}</strong>
           </div>
 
           <div>
-            <span>Worker Payments</span>
-            <strong>{money(totalWorkers)}</strong>
+            <span>Workers get</span>
+            <strong>{money(previewWorkerAmount)}</strong>
           </div>
- 
+
           <div>
-            <span>Net Profit</span>
-            <strong className={netProfit >= 0 ? "positive" : "negative"}>
-              {money(netProfit)}
-            </strong>
+            <span>Total kg</span>
+            <strong>{Number(previewTotalWeightKg || 0).toLocaleString()} kg</strong>
           </div>
+        </div>
+
+        <div className="sales-form-grid">
+          <label className="sales-field">
+            <span className="sales-field-icon">
+              <SalesIcon type="tag" />
+            </span>
+            <div>
+              <small>Product</small>
+              <input
+                type="text"
+                placeholder="Wheat, chilies, cotton"
+                value={form.productName}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, productName: e.target.value }))
+                }
+              />
+            </div>
+          </label>
+
+          <label className="sales-field">
+            <span className="sales-field-icon">
+              <SalesIcon type="qty" />
+            </span>
+            <div>
+              <small>Quantity</small>
+              <input
+                type="number"
+                placeholder="Enter quantity"
+                value={form.quantity}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, quantity: e.target.value }))
+                }
+              />
+            </div>
+          </label>
+
+          <label className="sales-field">
+            <span className="sales-field-icon">
+              <SalesIcon type="grid" />
+            </span>
+            <div>
+              <small>Unit</small>
+              <select
+                value={form.unit}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, unit: e.target.value }))
+                }
+              >
+                <option value="murh">Murh</option>
+                <option value="maund">Maund</option>
+                <option value="kg">Kg</option>
+              </select>
+              <em className="sales-unit-hint">{getUnitHint(form.unit)}</em>
+            </div>
+          </label>
+
+          <label className="sales-field">
+            <span className="sales-field-icon">
+              <SalesIcon type="money" />
+            </span>
+            <div>
+              <small>Rate (PKR)</small>
+              <input
+                type="number"
+                placeholder="Enter rate"
+                value={form.rate}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, rate: e.target.value }))
+                }
+              />
+            </div>
+          </label>
+
+          <label className="sales-field">
+            <span className="sales-field-icon">
+              <SalesIcon type="money" />
+            </span>
+            <div>
+              <small>Total Amount</small>
+              <input
+                type="number"
+                placeholder="Optional manual total"
+                value={form.totalAmount}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, totalAmount: e.target.value }))
+                }
+              />
+            </div>
+          </label>
+
+          <label className="sales-field">
+            <span className="sales-field-icon">
+              <SalesIcon type="grid" />
+            </span>
+            <div>
+              <small>Owner Share %</small>
+              <input
+                type="number"
+                placeholder="70"
+                value={form.ownerSharePercentage}
+                onChange={(e) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    ownerSharePercentage: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </label>
+
+          <label className="sales-field sales-field-wide">
+            <span className="sales-field-icon">
+              <SalesIcon type="calendar" />
+            </span>
+            <div>
+              <small>Date</small>
+              <input
+                type="date"
+                value={form.saleDate}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, saleDate: e.target.value }))
+                }
+              />
+            </div>
+          </label>
+
+          <label className="sales-field sales-field-wide">
+            <span className="sales-field-icon">
+              <SalesIcon type="note" />
+            </span>
+            <div>
+              <small>Note (Optional)</small>
+              <input
+                type="text"
+                placeholder="Buyer name, market, payment detail..."
+                value={form.note}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, note: e.target.value }))
+                }
+              />
+            </div>
+          </label>
+        </div>
+
+        <section className="sales-worker-box">
+          <div className="sales-worker-head">
+            <div>
+              <h4>Select workers for share</h4>
+              <p>Tap worker cards instead of typing names.</p>
+            </div>
+
+            <div className="sales-worker-tools">
+              <button type="button" onClick={selectAllWorkers}>All</button>
+              <button type="button" onClick={clearWorkers}>Clear</button>
+            </div>
+          </div>
+
+          <div className="sales-worker-selected-line">
+            <span>{selectedWorkers.length} selected</span>
+            <strong>{money(previewWorkerAmount)}</strong>
+          </div>
+
+          {workerDirectory.length === 0 ? (
+            <div className="sales-worker-empty">
+              No saved workers yet. Add workers from the Workers page first.
+            </div>
+          ) : (
+            <div className="sales-worker-grid">
+              {workerDirectory.map((worker) => {
+                const selected = selectedWorkerKeys.includes(worker.key);
+
+                return (
+                  <button
+                    key={worker.key}
+                    type="button"
+                    className={`sales-worker-card ${selected ? "selected" : ""}`}
+                    onClick={() => toggleWorker(worker.key)}
+                  >
+                    <Avatar
+                      src={worker.photoDataUrl || getWorkerAvatar(worker.fullName)}
+                      alt={worker.fullName}
+                      zoom={worker.photoZoom}
+                      x={worker.photoX}
+                      y={worker.photoY}
+                    />
+
+                    <span>
+                      <strong>{worker.fullName}</strong>
+                      <small>{worker.roleCategory}</small>
+                    </span>
+
+                    <b>{selected ? "✓" : "+"}</b>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <div className="sales-button-row">
+          <button type="button" className="sales-save-btn" onClick={saveSale}>
+            {editingId ? "Update Sale" : "Save Sale"}
+          </button>
+
+          {editingId ? (
+            <button type="button" className="sales-cancel-btn" onClick={resetForm}>
+              Cancel
+            </button>
+          ) : null}
         </div>
       </section>
 
-      <div className="reports-bottom-space" />
+      <section className="sales-panel">
+        <div className="sales-section-head">
+          <div className="sales-title-row compact">
+            <span className="sales-section-icon soft">
+              <SalesIcon type="calendar" />
+            </span>
+            <div>
+              <h3>Recent Sales</h3>
+              <p>Search and manage saved crop sale records.</p>
+            </div>
+          </div>
+
+          <button type="button" className="sales-text-btn" onClick={() => fetchSales()}>
+            View all ›
+          </button>
+        </div>
+
+        <div className="sales-search">
+          <input
+            type="text"
+            placeholder="Search sales"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="sales-list">
+          {filteredItems.length === 0 ? (
+            <div className="sales-empty">
+              {loading ? "Loading sales..." : "No sales found"}
+            </div>
+          ) : (
+            filteredItems.slice(0, 12).map((item) => (
+              <article key={item._id} className="sales-row">
+                <span className="sales-row-icon">🌾</span>
+
+                <div className="sales-row-main">
+                  <strong>
+                    {item.productName || "Sale"}
+                    {item.isPendingSync ? " • Offline" : ""}
+                  </strong>
+                  <span>
+                    {Number(item.quantity || 0).toLocaleString()} {item.unit || ""}
+                    {item.totalWeightKg
+                      ? ` • ${Number(item.totalWeightKg).toLocaleString()} kg`
+                      : ""}
+                  </span>
+                  <small>{formatDate(item.saleDate || item.createdAt)}</small>
+
+                  {Array.isArray(item.workerSplits) && item.workerSplits.length > 0 ? (
+                    <div className="sales-row-workers">
+                      {item.workerSplits.slice(0, 3).map((worker) => (
+                        <em key={`${item._id}-${worker.workerName}`}>
+                          {worker.workerName}
+                        </em>
+                      ))}
+                      {item.workerSplits.length > 3 ? (
+                        <em>+{item.workerSplits.length - 3}</em>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="sales-row-side">
+                  <b>{money(item.totalAmount)}</b>
+                  <small>Owner {money(item.ownerAmount || item.ownerIncomeAmount)}</small>
+
+                  <div>
+                    <button type="button" onClick={() => startEdit(item)}>
+                      Edit
+                    </button>
+
+                    <button
+                      type="button"
+                      className="danger"
+                      onClick={() => deleteSale(item)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+
+      <div className="sales-bottom-space" />
     </div>
   );
-} 
+}    

@@ -3118,3 +3118,164 @@ img[src*="sales-produce-hero"] {
     min-height: 172% !important;
   }
 }
+/* =========================================================
+   SAFE MOBILE UI PATCH - MAY 2026
+   Fixes only:
+   1) mobile input auto zoom
+   2) top farm banner side/top gaps
+   3) bottom navbar height
+   4) reports graph/tab click layer
+   ========================================================= */
+
+/* Stop mobile browser auto-zoom on amount/input fields */
+input,
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+/* Keep authenticated pages tight on mobile without changing cards */
+@media (max-width: 430px) {
+  .app-shell {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .page-wrap {
+    max-width: 100% !important;
+  }
+
+  .container,
+  .home-page,
+  .cashbook-page,
+  .sales-page,
+  .reports-page,
+  .worker-page-lite,
+  .workers-page,
+  .expense-page,
+  .expenses-page,
+  .expense-premium-page {
+    width: 100% !important;
+  }
+
+  /* Make top farm image/header reach the screen edges */
+  .home-farm-banner,
+  .cashbook-farm-header,
+  .sales-farm-header,
+  .reports-hero,
+  .report-hero,
+  .worker-premium-hero,
+  .worker-farm-header,
+  .workers-farm-header,
+  .expense-farm-header,
+  .expenses-farm-header {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-top: 0 !important;
+    border-radius: 0 0 28px 28px !important;
+    overflow: hidden !important;
+  }
+
+  .home-farm-banner {
+    min-height: 190px !important;
+    background-size: cover !important;
+    background-position: center center !important;
+  }
+
+  .cashbook-header-image,
+  .sales-header-image,
+  .reports-hero-bg,
+  .report-hero-bg,
+  .worker-header-image,
+  .workers-header-image,
+  .expense-header-image,
+  .expenses-header-image {
+    width: 100% !important;
+    object-fit: cover !important;
+    border-radius: 0 0 28px 28px !important;
+  }
+
+  /* Keep cards same, only maintain clean overlap */
+  .home-balance-card,
+  .cashbook-balance-card,
+  .sales-summary-card,
+  .reports-summary-card,
+  .report-summary-card,
+  .worker-overview-card,
+  .worker-summary-card-lite,
+  .expense-summary-card,
+  .expenses-summary-card,
+  .expense-total-card,
+  .expense-overview-card {
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+  }
+
+  /* Shorter bottom navbar */
+  .bottom-nav {
+    bottom: 6px !important;
+    width: min(410px, calc(100vw - 14px)) !important;
+    gap: 3px !important;
+    padding: 6px 7px calc(6px + env(safe-area-inset-bottom)) !important;
+    border-radius: 23px !important;
+  }
+
+  .bottom-nav-item {
+    height: 52px !important;
+    border-radius: 18px !important;
+    gap: 3px !important;
+    padding: 4px 2px !important;
+  }
+
+  .bottom-nav-icon .app-svg-icon {
+    font-size: 21px !important;
+  }
+
+  .bottom-nav-label {
+    font-size: 8.8px !important;
+    line-height: 1 !important;
+  }
+}
+
+/* Reports graph tabs and graph dots must stay clickable */
+.reports-graph-box,
+.reports-graph-top,
+.reports-graph-tabs {
+  position: relative !important;
+  z-index: 30 !important;
+}
+
+.reports-graph-tabs,
+.reports-graph-tabs button {
+  pointer-events: auto !important;
+}
+
+.reports-graph-canvas {
+  position: relative !important;
+}
+
+.reports-graph-click-layer {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 20 !important;
+  pointer-events: none !important;
+}
+
+.reports-graph-dot-button {
+  position: absolute !important;
+  width: 22px !important;
+  height: 22px !important;
+  margin-left: -11px !important;
+  margin-top: -11px !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  pointer-events: auto !important;
+  z-index: 25 !important;
+}
+
+.reports-chart-tooltip,
+.reports-chart-guide {
+  pointer-events: none !important;
+}
