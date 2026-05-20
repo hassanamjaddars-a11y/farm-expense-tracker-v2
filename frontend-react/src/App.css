@@ -3320,3 +3320,121 @@ textarea {
     padding-bottom: 9px !important;
   }
 }
+/* =========================================================
+   FINAL EXPENSE LOGO SIZE FIX
+   Makes Expense page logo match Home, Cash Book, Workers, Sales, Reports.
+   ========================================================= */
+
+.expense-brand-logo-image img,
+.expense-brand-logo-image .expense-app-logo {
+  width: 124% !important;
+  height: 124% !important;
+  min-width: 124% !important;
+  min-height: 124% !important;
+  max-width: none !important;
+  max-height: none !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+@media (display-mode: standalone) and (orientation: portrait) {
+  .bottom-nav {
+    padding-bottom: 10px !important;  /* Adjust as needed */
+    height: 50px !important;           /* Ensure height is consistent */
+    /* You can also tweak other properties like margins, spacing, etc. */
+  }
+}
+/* =========================================================
+   FINAL MOBILE ALIGNMENT + REPORT GRAPH CLICK FIX
+   Fixes only:
+   1) Sales summary card right-side extra width
+   2) Home / Reports top hero spacing to match Expense style
+   3) Reports graph tabs / graph point clicks on mobile
+   ========================================================= */
+
+@media (max-width: 430px) {
+  /* Make Home, Sales, Reports main hero/card widths consistent with Expense */
+  .home-farm-banner,
+  .reports-hero,
+  .report-hero {
+    width: calc(100% - 20px) !important;
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+    margin-top: 0 !important;
+    border-radius: 0 0 28px 28px !important;
+    overflow: hidden !important;
+  }
+
+  .sales-summary-card,
+  .reports-summary-card,
+  .report-summary-card,
+  .home-balance-card,
+  .home-current-card {
+    width: calc(100% - 20px) !important;
+    margin-left: 10px !important;
+    margin-right: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Sales total sales image/card: stop right side from stretching too far */
+  .sales-summary-card {
+    overflow: hidden !important;
+  }
+
+  .sales-produce-art {
+    max-width: 42% !important;
+    right: 8px !important;
+    overflow: hidden !important;
+  }
+
+  .sales-produce-art img {
+    max-width: 100% !important;
+    object-fit: contain !important;
+  }
+
+  /* Reports graph tabs/oval buttons must be tappable on mobile */
+  .reports-graph-box,
+  .reports-graph-top,
+  .reports-graph-tabs,
+  .reports-graph-tabs button {
+    position: relative !important;
+    z-index: 80 !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+  }
+
+  .reports-graph-tabs button {
+    min-height: 38px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* Make graph point buttons easier to tap on mobile */
+  .reports-graph-canvas {
+    position: relative !important;
+  }
+
+  .reports-graph-click-layer {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 90 !important;
+    pointer-events: none !important;
+  }
+
+  .reports-graph-dot-button {
+    position: absolute !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin-left: -22px !important;
+    margin-top: -22px !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    pointer-events: auto !important;
+    z-index: 100 !important;
+    touch-action: manipulation !important;
+  }
+
+  .reports-chart-tooltip,
+  .reports-chart-guide {
+    pointer-events: none !important;
+    z-index: 110 !important;
+  }
+}

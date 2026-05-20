@@ -67,16 +67,6 @@ const realPercent = (value, total) => {
 const normalizeName = (value = "") =>
   String(value).trim().replace(/\s+/g, " ").toLowerCase();
 
-const dayKey = (value) => {
-  const date = value ? new Date(value) : new Date();
-
-  if (Number.isNaN(date.getTime())) {
-    return new Date().toISOString().slice(0, 10);
-  }
-
-  return date.toISOString().slice(0, 10);
-};
-
 const dayLabel = (key) => {
   const date = new Date(`${key}T00:00:00`);
 
@@ -143,7 +133,6 @@ const getSaleIncomeAmount = (item) =>
   );
 
 const round2 = (value) => Math.round(Number(value || 0) * 100) / 100;
-
 
 function FarmPremiumLogoMark() {
   return (
@@ -214,34 +203,6 @@ const getWorkerCategoryMeta = (name = "") => {
   return { Icon: FaUsers, className: "workers" };
 };
 
-function buildPointPath(values, width, height, padX = 14, padY = 12) {
-  const max = Math.max(...values.map((item) => item.visualValue), 1);
-  const min = Math.min(...values.map((item) => item.visualValue), 0);
-  const range = max - min || 1;
-
-  const points = values.map((item, index) => {
-    const x = padX + index * 44;
-    const y =
-      height -
-      padY -
-      ((item.visualValue - min) * (height - padY * 2)) / range;
-
-    return {
-      ...item,
-      x,
-      y,
-    };
-  });
-
-  const path = points.map((point) => `${point.x},${point.y}`).join(" ");
-
-  return {
-    points,
-    path,
-    width: Math.max(width, padX * 2 + Math.max(values.length - 1, 1) * 44),
-  };
-}
-
 export default function Reports() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -293,6 +254,7 @@ export default function Reports() {
       setExpenseCategories(Array.isArray(expenseCatsRes.data) ? expenseCatsRes.data : []);
       setWorkerCategories(Array.isArray(workerCatsRes.data) ? workerCatsRes.data : []);
       cacheReportsSnapshot(reportsRes.data);
+      return true;
     } catch (err) {
       console.error("Reports fetch error:", err);
       setData(getInitialReportsData());
@@ -300,6 +262,8 @@ export default function Reports() {
       if (showOfflineToast) {
         toast.error("Offline mode: showing saved report data");
       }
+
+      return false;
     } finally {
       setLoading(false);
     }
@@ -356,6 +320,77 @@ export default function Reports() {
     const next = new URLSearchParams(searchParams);
     next.delete("panel");
     setSearchParams(next);
+  };
+
+  const clearReportFilters = (next) => {
+    next.delete("expenseId");
+    next.delete("description");
+    next.delete("category");
+    next.delete("workerId");
+    next.delete("workerName");
+    next.delete("workerCategory");
+  };
+
+  const openReportsPanel = (panelName) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("panel", panelName);
+    clearReportFilters(next);
+    setSearchParams(next);
+    setSettingsOpen(false);
+    setOpenCategoryMenu(null);
+  };
+
+  const closeReportsPanel = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("panel");
+    clearReportFilters(next);
+    setSearchParams(next);
+  };
+
+  const handlePanelKeyDown = (event, panelName) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openReportsPanel(panelName);
+    }
+  };
+
+  const openExpenseDetail = (item) => {
+    const next = new URLSearchParams(searchParams);
+    clearReportFilters(next);
+    next.delete("panel");
+
+    if (item?._id) {
+      next.set("expenseId", item._id);
+    } else {
+      if (item?.description) next.set("description", item.description);
+      if (item?.category?.name) next.set("category", item.category.name);
+    }
+
+    setSearchParams(next);
+  };
+
+  const openWorkerDetail = (item) => {
+    const next = new URLSearchParams(searchParams);
+    clearReportFilters(next);
+    next.delete("panel");
+
+    if (item?._id) {
+      next.set("workerId", item._id);
+    } else {
+      if (item?.workerName) next.set("workerName", item.workerName);
+      if (item?.category?.name) next.set("workerCategory", item.category.name);
+    }
+
+    setSearchParams(next);
+  };
+
+  const refreshReports = async () => {
+    setLoading(true);
+    const refreshed = await fetchReports(true);
+
+    if (refreshed) {
+      toast.success("Reports refreshed");
+    }
   };
 
   const handleLogout = () => {
@@ -452,10 +487,6 @@ export default function Reports() {
       }
     });
 
-    /*
-      If reports only has totals and no dated records, do NOT place all money
-      on the final point. That caused the ugly straight spike.
-    */
     if (!events.length) {
       const today = new Date();
 
@@ -562,7 +593,6 @@ export default function Reports() {
       visualValue: hasRealGraphData ? item.cashOut : 0,
     }));
 
-    const chartHeight = 116;
     const pointSpacing = baseRows.length <= 7 ? 58 : 44;
     const svgWidth = Math.max(300, 36 + Math.max(baseRows.length - 1, 1) * pointSpacing);
     const finalWidth = Math.max(610, svgWidth);
@@ -609,7 +639,7 @@ export default function Reports() {
       workers: normalizeRows(workerRows),
       cashOut: normalizeRows(cashOutRows),
       svgWidth: finalWidth,
-      svgHeight: chartHeight,
+      svgHeight: 116,
     };
   }, [
     graphMode,
@@ -825,9 +855,10 @@ export default function Reports() {
                   <button
                     type="button"
                     className="reports-menu-btn"
-                    onClick={() =>
-                      setOpenCategoryMenu((prev) => (prev === menuKey ? null : menuKey))
-                    }
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setOpenCategoryMenu((prev) => (prev === menuKey ? null : menuKey));
+                    }}
                     aria-label="Open category menu"
                   >
                     ⋯
@@ -837,11 +868,12 @@ export default function Reports() {
                     <div className="reports-menu">
                       <button
                         type="button"
-                        onClick={() =>
+                        onClick={(event) => {
+                          event.stopPropagation();
                           isExpense
                             ? renameExpenseCategory(realCategory._id, realCategory.name)
-                            : renameWorkerCategory(realCategory._id, realCategory.name)
-                        }
+                            : renameWorkerCategory(realCategory._id, realCategory.name);
+                        }}
                       >
                         Edit category
                       </button>
@@ -849,11 +881,12 @@ export default function Reports() {
                       <button
                         type="button"
                         className="danger"
-                        onClick={() =>
+                        onClick={(event) => {
+                          event.stopPropagation();
                           isExpense
                             ? deleteExpenseCategory(realCategory._id, realCategory.name)
-                            : deleteWorkerCategory(realCategory._id, realCategory.name)
-                        }
+                            : deleteWorkerCategory(realCategory._id, realCategory.name);
+                        }}
                       >
                         Delete category
                       </button>
@@ -888,14 +921,27 @@ export default function Reports() {
     const Icon = meta.Icon;
 
     return (
-      <article key={item._id} className="reports-record-row">
+      <article
+        key={item._id || `expense-${item.description || "record"}-${item.createdAt || ""}`}
+        className="reports-record-row"
+        role="button"
+        tabIndex={0}
+        onClick={() => openExpenseDetail(item)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openExpenseDetail(item);
+          }
+        }}
+        style={{ cursor: "pointer" }}
+      >
         <div className={`reports-record-icon expense ${meta.className}`}>
           <Icon />
         </div>
 
         <div className="reports-record-main">
           <strong>{item.description || "Expense"}</strong>
-          <span>{formatShortDate(item.createdAt)}</span>
+          <span>{formatShortDate(item.createdAt || item.date || item.expenseDate)}</span>
         </div>
 
         <b className="negative">-{money(item.amount)}</b>
@@ -910,14 +956,27 @@ export default function Reports() {
     const Icon = meta.Icon;
 
     return (
-      <article key={item._id} className="reports-record-row">
+      <article
+        key={item._id || `worker-${item.workerName || "record"}-${item.createdAt || ""}`}
+        className="reports-record-row"
+        role="button"
+        tabIndex={0}
+        onClick={() => openWorkerDetail(item)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openWorkerDetail(item);
+          }
+        }}
+        style={{ cursor: "pointer" }}
+      >
         <div className={`reports-record-icon worker ${meta.className}`}>
           <Icon />
         </div>
 
         <div className="reports-record-main">
           <strong>{item.workerName || "Worker"}</strong>
-          <span>{formatShortDate(item.createdAt)}</span>
+          <span>{formatShortDate(item.createdAt || item.date || item.paymentDate)}</span>
         </div>
 
         <b className="negative">-{money(item.amount)}</b>
@@ -926,10 +985,139 @@ export default function Reports() {
     );
   };
 
+  const renderActiveReportPanel = () => {
+    if (!activePanel || activePanel === "settings") return null;
+
+    let title = "";
+    let description = "";
+    let content = null;
+
+    if (activePanel === "expense-entries") {
+      title = "Expense Entries";
+      description = "All expense records currently available in reports.";
+
+      content = loading ? (
+        <div className="reports-empty">Loading expense entries...</div>
+      ) : recentExpenses.length === 0 ? (
+        <div className="reports-empty">No expense records found</div>
+      ) : (
+        <div className="reports-record-list">{recentExpenses.map(renderRecentExpense)}</div>
+      );
+    }
+
+    if (activePanel === "worker-entries") {
+      title = "Worker Entries";
+      description = "All worker payment records currently available in reports.";
+
+      content = loading ? (
+        <div className="reports-empty">Loading worker entries...</div>
+      ) : recentWorkers.length === 0 ? (
+        <div className="reports-empty">No worker payment records found</div>
+      ) : (
+        <div className="reports-record-list">{recentWorkers.map(renderRecentWorker)}</div>
+      );
+    }
+
+    if (activePanel === "expense-categories") {
+      title = "Expense Categories";
+      description = "Expense totals grouped by category.";
+
+      content = loading ? (
+        <div className="reports-empty">Loading expense categories...</div>
+      ) : (data.expenseByCategory || []).length === 0 ? (
+        <div className="reports-empty">No expense categories found</div>
+      ) : (
+        <>
+          <div className="reports-category-list">
+            {(data.expenseByCategory || []).map((item, index) =>
+              renderCategoryRow(item, index, "expense")
+            )}
+          </div>
+
+          <div className="reports-total-strip expense">
+            <span>Total Expenses</span>
+            <strong>{money(totalExpenses)}</strong>
+          </div>
+        </>
+      );
+    }
+
+    if (activePanel === "worker-categories") {
+      title = "Worker Categories";
+      description = "Worker payment totals grouped by category.";
+
+      content = loading ? (
+        <div className="reports-empty">Loading worker categories...</div>
+      ) : (data.workerByCategory || []).length === 0 ? (
+        <div className="reports-empty">No worker categories found</div>
+      ) : (
+        <>
+          <div className="reports-category-list">
+            {(data.workerByCategory || []).map((item, index) =>
+              renderCategoryRow(item, index, "worker")
+            )}
+          </div>
+
+          <div className="reports-total-strip worker">
+            <span>Total Worker Payments</span>
+            <strong>{money(totalWorkers)}</strong>
+          </div>
+        </>
+      );
+    }
+
+    if (activePanel === "recent-expenses") {
+      title = "Recent Expenses";
+      description = "Latest expense records opened from reports.";
+
+      content = loading ? (
+        <div className="reports-empty">Loading recent expenses...</div>
+      ) : (data.recentExpenses || []).length === 0 ? (
+        <div className="reports-empty">No recent expense records</div>
+      ) : (
+        <div className="reports-record-list">
+          {(data.recentExpenses || []).map(renderRecentExpense)}
+        </div>
+      );
+    }
+
+    if (activePanel === "recent-workers") {
+      title = "Recent Worker Payments";
+      description = "Latest worker payment records opened from reports.";
+
+      content = loading ? (
+        <div className="reports-empty">Loading worker payments...</div>
+      ) : (data.recentWorkers || []).length === 0 ? (
+        <div className="reports-empty">No recent worker records</div>
+      ) : (
+        <div className="reports-record-list">
+          {(data.recentWorkers || []).map(renderRecentWorker)}
+        </div>
+      );
+    }
+
+    if (!content) return null;
+
+    return (
+      <section className="reports-panel reports-detail-panel">
+        <div className="reports-section-head">
+          <div>
+            <h3>{title}</h3>
+            <p>{description}</p>
+          </div>
+
+          <button type="button" onClick={closeReportsPanel}>
+            Close
+          </button>
+        </div>
+
+        {content}
+      </section>
+    );
+  };
+
   const renderGraphLine = (line, className) => (
     <>
-      <polyline points={line.path} className={className} />
-
       {line.points.map((point) => (
         <button
           key={`${className}-${point.series}-${point.key}`}
@@ -1065,12 +1253,7 @@ export default function Reports() {
                     </div>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      openSettingsPanel();
-                    }}
-                  >
+                  <button type="button" onClick={openSettingsPanel}>
                     <span>⚙️</span>
                     <div>
                       <strong>Settings</strong>
@@ -1162,10 +1345,7 @@ export default function Reports() {
           </div>
 
           <div className="reports-graph-scroll">
-            <div
-              className="reports-graph-canvas"
-              style={{ width: `${chart.svgWidth}px` }}
-            >
+            <div className="reports-graph-canvas" style={{ width: `${chart.svgWidth}px` }}>
               {activePoint && (
                 <div
                   className="reports-chart-tooltip"
@@ -1271,8 +1451,17 @@ export default function Reports() {
         </div>
       </section>
 
+      {renderActiveReportPanel()}
+
       <section className="reports-entry-grid">
-        <article className="reports-entry-card">
+        <article
+          className="reports-entry-card"
+          role="button"
+          tabIndex={0}
+          onClick={() => openReportsPanel("expense-entries")}
+          onKeyDown={(event) => handlePanelKeyDown(event, "expense-entries")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="reports-entry-icon expense">
             <FaRegFileAlt />
           </div>
@@ -1286,7 +1475,14 @@ export default function Reports() {
           <FaChevronRight />
         </article>
 
-        <article className="reports-entry-card">
+        <article
+          className="reports-entry-card"
+          role="button"
+          tabIndex={0}
+          onClick={() => openReportsPanel("worker-entries")}
+          onKeyDown={(event) => handlePanelKeyDown(event, "worker-entries")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="reports-entry-icon worker">
             <FaUsers />
           </div>
@@ -1302,16 +1498,27 @@ export default function Reports() {
       </section>
 
       <section className="reports-two-grid">
-        <article className="reports-panel reports-list-panel">
+        <article
+          className="reports-panel reports-list-panel"
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            if (!event.target.closest("button")) {
+              openReportsPanel("expense-categories");
+            }
+          }}
+          onKeyDown={(event) => handlePanelKeyDown(event, "expense-categories")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="reports-card-head">
             <h3>Expense Categories</h3>
 
             {(data.expenseByCategory || []).length > 4 ? (
               <button
                 type="button"
-                onClick={() => setShowAllExpenseCats((prev) => !prev)}
+                onClick={() => openReportsPanel("expense-categories")}
               >
-                {showAllExpenseCats ? "View less" : "View all"}
+                View all
                 <FaChevronRight />
               </button>
             ) : null}
@@ -1335,16 +1542,27 @@ export default function Reports() {
           </div>
         </article>
 
-        <article className="reports-panel reports-list-panel">
+        <article
+          className="reports-panel reports-list-panel"
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            if (!event.target.closest("button")) {
+              openReportsPanel("worker-categories");
+            }
+          }}
+          onKeyDown={(event) => handlePanelKeyDown(event, "worker-categories")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="reports-card-head">
             <h3>Worker Categories</h3>
 
             {(data.workerByCategory || []).length > 4 ? (
               <button
                 type="button"
-                onClick={() => setShowAllWorkerCats((prev) => !prev)}
+                onClick={() => openReportsPanel("worker-categories")}
               >
-                {showAllWorkerCats ? "View less" : "View all"}
+                View all
                 <FaChevronRight />
               </button>
             ) : null}
@@ -1376,6 +1594,10 @@ export default function Reports() {
               <h3>Expense Detail</h3>
               <p>Opened from recent activity.</p>
             </div>
+
+            <button type="button" onClick={closeReportsPanel}>
+              Close
+            </button>
           </div>
 
           {highlightedExpenses.length === 0 ? (
@@ -1409,6 +1631,10 @@ export default function Reports() {
               <h3>Worker Payment Detail</h3>
               <p>Opened from recent activity.</p>
             </div>
+
+            <button type="button" onClick={closeReportsPanel}>
+              Close
+            </button>
           </div>
 
           {highlightedWorkers.length === 0 ? (
@@ -1437,12 +1663,23 @@ export default function Reports() {
       ) : null}
 
       <section className="reports-two-grid">
-        <article className="reports-panel reports-list-panel">
+        <article
+          className="reports-panel reports-list-panel"
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            if (!event.target.closest("button")) {
+              openReportsPanel("recent-expenses");
+            }
+          }}
+          onKeyDown={(event) => handlePanelKeyDown(event, "recent-expenses")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="reports-card-head">
             <h3>Recent Expenses</h3>
 
             {(data.recentExpenses || []).length > 4 ? (
-              <button type="button">
+              <button type="button" onClick={() => openReportsPanel("recent-expenses")}>
                 View all
                 <FaChevronRight />
               </button>
@@ -1460,12 +1697,23 @@ export default function Reports() {
           )}
         </article>
 
-        <article className="reports-panel reports-list-panel">
+        <article
+          className="reports-panel reports-list-panel"
+          role="button"
+          tabIndex={0}
+          onClick={(event) => {
+            if (!event.target.closest("button")) {
+              openReportsPanel("recent-workers");
+            }
+          }}
+          onKeyDown={(event) => handlePanelKeyDown(event, "recent-workers")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="reports-card-head">
             <h3>Recent Worker Payments</h3>
 
             {(data.recentWorkers || []).length > 4 ? (
-              <button type="button">
+              <button type="button" onClick={() => openReportsPanel("recent-workers")}>
                 View all
                 <FaChevronRight />
               </button>
@@ -1491,7 +1739,7 @@ export default function Reports() {
             <p>Quick financial read for this account.</p>
           </div>
 
-          <button type="button" onClick={() => fetchReports()}>
+          <button type="button" onClick={refreshReports}>
             Refresh
           </button>
         </div>
@@ -1511,7 +1759,7 @@ export default function Reports() {
             <span>Worker Payments</span>
             <strong>{money(totalWorkers)}</strong>
           </div>
- 
+
           <div>
             <span>Net Profit</span>
             <strong className={netProfit >= 0 ? "positive" : "negative"}>
@@ -1524,4 +1772,4 @@ export default function Reports() {
       <div className="reports-bottom-space" />
     </div>
   );
-}
+} 

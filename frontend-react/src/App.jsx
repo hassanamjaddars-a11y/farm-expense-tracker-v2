@@ -223,6 +223,126 @@ function AppGlobalHeaderStyles() {
       :root {
         --farm-app-logo-url: url("${farmAppLogo}");
       }
+
+      /*
+        FINAL APP JSX MICRO FIX
+        1) Keeps page settings menus fully visible on iPhone.
+        2) Keeps reports graph dots tappable but visually small.
+        3) Keeps toast/loading messages fully visible above all pages.
+      */
+
+      .home-settings-wrap,
+      .expense-settings-wrap,
+      .expenses-settings-wrap,
+      .cashbook-menu-wrap,
+      .cashbook-settings-wrap,
+      .sales-menu-wrap,
+      .sales-settings-wrap,
+      .worker-settings-wrap,
+      .workers-settings-wrap,
+      .reports-settings-wrap,
+      .report-settings-wrap,
+      .settings-wrap,
+      .topbar-actions {
+        position: relative !important;
+        z-index: 2147483000 !important;
+        overflow: visible !important;
+      }
+
+      .home-profile-dropdown,
+      .home-settings-dropdown,
+      .expense-profile-dropdown,
+      .expenses-profile-dropdown,
+      .cashbook-profile-dropdown,
+      .sales-profile-dropdown,
+      .worker-profile-dropdown,
+      .workers-profile-dropdown,
+      .reports-profile-dropdown,
+      .report-profile-dropdown,
+      .premium-profile-dropdown,
+      .settings-dropdown,
+      .profile-dropdown,
+      .topbar-menu-right {
+        position: fixed !important;
+        top: calc(78px + env(safe-area-inset-top)) !important;
+        right: max(10px, calc((100vw - 430px) / 2 + 10px)) !important;
+        left: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        z-index: 2147483647 !important;
+        width: min(326px, calc(100vw - 20px)) !important;
+        max-width: min(326px, calc(100vw - 20px)) !important;
+        max-height: calc(100vh - 98px - env(safe-area-inset-top)) !important;
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+      }
+
+      @media (max-width: 430px) {
+        .home-profile-dropdown,
+        .home-settings-dropdown,
+        .expense-profile-dropdown,
+        .expenses-profile-dropdown,
+        .cashbook-profile-dropdown,
+        .sales-profile-dropdown,
+        .worker-profile-dropdown,
+        .workers-profile-dropdown,
+        .reports-profile-dropdown,
+        .report-profile-dropdown,
+        .premium-profile-dropdown,
+        .settings-dropdown,
+        .profile-dropdown,
+        .topbar-menu-right {
+          top: calc(72px + env(safe-area-inset-top)) !important;
+          right: 9px !important;
+          width: min(326px, calc(100vw - 18px)) !important;
+          max-width: min(326px, calc(100vw - 18px)) !important;
+          max-height: calc(100vh - 90px - env(safe-area-inset-top)) !important;
+        }
+
+        .reports-graph-dot-button {
+          width: 30px !important;
+          height: 30px !important;
+          margin-left: -15px !important;
+          margin-top: -15px !important;
+          border-radius: 999px !important;
+          background: transparent !important;
+          pointer-events: auto !important;
+          touch-action: manipulation !important;
+          -webkit-tap-highlight-color: transparent !important;
+        }
+
+        .reports-graph-dot-button::after {
+          content: "" !important;
+          position: absolute !important;
+          left: 50% !important;
+          top: 50% !important;
+          right: auto !important;
+          bottom: auto !important;
+          width: 9px !important;
+          height: 9px !important;
+          min-width: 9px !important;
+          min-height: 9px !important;
+          transform: translate(-50%, -50%) !important;
+          border-radius: 999px !important;
+          background: rgba(255, 255, 255, 0.62) !important;
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35) !important;
+        }
+
+        .reports-graph-tabs button {
+          min-height: 34px !important;
+          padding: 7px 11px !important;
+        }
+      }
+
+      .farm-toast-safe {
+        max-width: calc(100vw - 24px) !important;
+        overflow: visible !important;
+      }
+
+      .farm-toast-safe [role="status"],
+      .farm-toast-safe [role="alert"] {
+        overflow: visible !important;
+      }
     `}</style>
   );
 }
@@ -382,14 +502,39 @@ function AppLayout() {
 
       <Toaster
         position="top-center"
+        containerStyle={{
+          top: "calc(12px + env(safe-area-inset-top))",
+          left: "12px",
+          right: "12px",
+          zIndex: 2147483647,
+          pointerEvents: "none",
+        }}
         toastOptions={{
+          className: "farm-toast-safe",
           duration: 2200,
+          success: {
+            iconTheme: {
+              primary: "#22c55e",
+              secondary: "#ffffff",
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: "#ef4444",
+              secondary: "#ffffff",
+            },
+          },
+          loading: {
+            duration: 1400,
+          },
           style: {
+            maxWidth: "calc(100vw - 24px)",
             borderRadius: "16px",
             padding: "12px 14px",
             background: "#0f172a",
             color: "#ffffff",
             boxShadow: "0 16px 32px rgba(15, 23, 42, 0.24)",
+            overflow: "visible",
           },
         }}
       />
@@ -654,4 +799,5 @@ export default function App() {
       <AppLayout />
     </Router>
   );
-}  
+}
+ 
