@@ -3279,3 +3279,44 @@ textarea {
 .reports-chart-guide {
   pointer-events: none !important;
 }
+/* =========================================================
+   INSTALLED PWA NAVBAR FIX
+   Only affects installed app mode. Browser/mobile link view stays unchanged.
+   Fixes bottom navbar becoming tall because of safe-area padding.
+   ========================================================= */
+
+@media (display-mode: standalone) and (max-width: 430px) {
+  .app-shell {
+    padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .bottom-nav {
+    bottom: max(6px, env(safe-area-inset-bottom)) !important;
+    width: min(410px, calc(100vw - 14px)) !important;
+    gap: 3px !important;
+    padding: 6px 7px !important;
+    border-radius: 23px !important;
+  }
+
+  .bottom-nav-item {
+    height: 52px !important;
+    border-radius: 18px !important;
+    gap: 3px !important;
+    padding: 4px 2px !important;
+  }
+
+  .bottom-nav-icon .app-svg-icon {
+    font-size: 21px !important;
+  }
+
+  .bottom-nav-label {
+    font-size: 8.8px !important;
+    line-height: 1 !important;
+  }
+}
+
+@media (display-mode: standalone) and (min-width: 431px) {
+  .bottom-nav {
+    padding-bottom: 9px !important;
+  }
+}
