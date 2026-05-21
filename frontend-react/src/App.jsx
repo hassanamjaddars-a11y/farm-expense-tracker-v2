@@ -222,6 +222,7 @@ function AppGlobalHeaderStyles() {
     <style>{`
       :root {
         --farm-app-logo-url: url("${farmAppLogo}");
+        --farm-bottom-nav-keyboard-push: 0px;
       }
 
       /*
@@ -414,8 +415,8 @@ function AppGlobalHeaderStyles() {
           gap: 4px !important;
           padding: 9px 10px 12px !important;
           border-radius: 28px !important;
-          transform: translate3d(-50%, 0, 0) !important;
-          -webkit-transform: translate3d(-50%, 0, 0) !important;
+          transform: translate3d(-50%, var(--farm-bottom-nav-keyboard-push, 0px), 0) !important;
+          -webkit-transform: translate3d(-50%, var(--farm-bottom-nav-keyboard-push, 0px), 0) !important;
           backface-visibility: hidden !important;
           -webkit-backface-visibility: hidden !important;
           will-change: transform !important;
@@ -454,8 +455,8 @@ function AppGlobalHeaderStyles() {
           min-height: 78px !important;
           padding: 9px 10px 12px !important;
           border-radius: 28px !important;
-          transform: translate3d(-50%, 0, 0) !important;
-          -webkit-transform: translate3d(-50%, 0, 0) !important;
+          transform: translate3d(-50%, var(--farm-bottom-nav-keyboard-push, 0px), 0) !important;
+          -webkit-transform: translate3d(-50%, var(--farm-bottom-nav-keyboard-push, 0px), 0) !important;
           backface-visibility: hidden !important;
           -webkit-backface-visibility: hidden !important;
           will-change: transform !important;
@@ -590,6 +591,37 @@ function AppLayout() {
   useEffect(() => {
     setSettingsOpen(false);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const updateBottomNavKeyboardPush = () => {
+      if (typeof window === "undefined" || typeof document === "undefined") return;
+
+      const visualViewport = window.visualViewport;
+      const keyboardPush = visualViewport
+        ? Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop)
+        : 0;
+
+      document.documentElement.style.setProperty(
+        "--farm-bottom-nav-keyboard-push",
+        `${Math.round(keyboardPush)}px`
+      );
+    };
+
+    updateBottomNavKeyboardPush();
+
+    window.visualViewport?.addEventListener("resize", updateBottomNavKeyboardPush);
+    window.visualViewport?.addEventListener("scroll", updateBottomNavKeyboardPush);
+    window.addEventListener("resize", updateBottomNavKeyboardPush);
+    window.addEventListener("orientationchange", updateBottomNavKeyboardPush);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateBottomNavKeyboardPush);
+      window.visualViewport?.removeEventListener("scroll", updateBottomNavKeyboardPush);
+      window.removeEventListener("resize", updateBottomNavKeyboardPush);
+      window.removeEventListener("orientationchange", updateBottomNavKeyboardPush);
+      document.documentElement.style.setProperty("--farm-bottom-nav-keyboard-push", "0px");
+    };
+  }, []);
 
   useEffect(() => {
     const SAVE_CLICK_LOCK_MS = 3000;
