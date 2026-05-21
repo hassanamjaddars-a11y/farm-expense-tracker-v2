@@ -222,7 +222,7 @@ function AppGlobalHeaderStyles() {
     <style>{`
       :root {
         --farm-app-logo-url: url("${farmAppLogo}");
-        --farm-bottom-nav-keyboard-push: 0px;
+        --farm-keyboard-lift: 0px;
       }
 
       /*
@@ -408,15 +408,15 @@ function AppGlobalHeaderStyles() {
           left: 50% !important;
           right: auto !important;
           top: auto !important;
-          bottom: max(8px, env(safe-area-inset-bottom)) !important;
+          bottom: calc(max(8px, env(safe-area-inset-bottom)) - var(--farm-keyboard-lift, 0px)) !important;
           width: min(430px, calc(100vw - 20px)) !important;
           height: auto !important;
           min-height: 78px !important;
           gap: 4px !important;
           padding: 9px 10px 12px !important;
           border-radius: 28px !important;
-          transform: translate3d(-50%, var(--farm-bottom-nav-keyboard-push, 0px), 0) !important;
-          -webkit-transform: translate3d(-50%, var(--farm-bottom-nav-keyboard-push, 0px), 0) !important;
+          transform: translate3d(-50%, 0, 0) !important;
+          -webkit-transform: translate3d(-50%, 0, 0) !important;
           backface-visibility: hidden !important;
           -webkit-backface-visibility: hidden !important;
           will-change: transform !important;
@@ -449,14 +449,14 @@ function AppGlobalHeaderStyles() {
           left: 50% !important;
           right: auto !important;
           top: auto !important;
-          bottom: max(8px, env(safe-area-inset-bottom)) !important;
+          bottom: calc(max(8px, env(safe-area-inset-bottom)) - var(--farm-keyboard-lift, 0px)) !important;
           width: min(430px, calc(100vw - 20px)) !important;
           height: auto !important;
           min-height: 78px !important;
           padding: 9px 10px 12px !important;
           border-radius: 28px !important;
-          transform: translate3d(-50%, var(--farm-bottom-nav-keyboard-push, 0px), 0) !important;
-          -webkit-transform: translate3d(-50%, var(--farm-bottom-nav-keyboard-push, 0px), 0) !important;
+          transform: translate3d(-50%, 0, 0) !important;
+          -webkit-transform: translate3d(-50%, 0, 0) !important;
           backface-visibility: hidden !important;
           -webkit-backface-visibility: hidden !important;
           will-change: transform !important;
@@ -593,33 +593,42 @@ function AppLayout() {
   }, [location.pathname, location.search]);
 
   useEffect(() => {
-    const updateBottomNavKeyboardPush = () => {
+    let rafId = 0;
+
+    const updateBottomNavKeyboardLock = () => {
       if (typeof window === "undefined" || typeof document === "undefined") return;
 
-      const visualViewport = window.visualViewport;
-      const keyboardPush = visualViewport
-        ? Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop)
-        : 0;
+      window.cancelAnimationFrame(rafId);
 
-      document.documentElement.style.setProperty(
-        "--farm-bottom-nav-keyboard-push",
-        `${Math.round(keyboardPush)}px`
-      );
+      rafId = window.requestAnimationFrame(() => {
+        const viewport = window.visualViewport;
+        const baseHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const currentHeight = viewport?.height || baseHeight;
+        const currentOffsetTop = viewport?.offsetTop || 0;
+        const keyboardHeight = Math.max(0, baseHeight - currentHeight - currentOffsetTop);
+        const safeKeyboardHeight = keyboardHeight > 120 ? Math.round(keyboardHeight) : 0;
+
+        document.documentElement.style.setProperty(
+          "--farm-keyboard-lift",
+          `${safeKeyboardHeight}px`
+        );
+      });
     };
 
-    updateBottomNavKeyboardPush();
+    updateBottomNavKeyboardLock();
 
-    window.visualViewport?.addEventListener("resize", updateBottomNavKeyboardPush);
-    window.visualViewport?.addEventListener("scroll", updateBottomNavKeyboardPush);
-    window.addEventListener("resize", updateBottomNavKeyboardPush);
-    window.addEventListener("orientationchange", updateBottomNavKeyboardPush);
+    window.visualViewport?.addEventListener("resize", updateBottomNavKeyboardLock);
+    window.addEventListener("resize", updateBottomNavKeyboardLock);
+    document.addEventListener("focusin", updateBottomNavKeyboardLock);
+    document.addEventListener("focusout", updateBottomNavKeyboardLock);
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", updateBottomNavKeyboardPush);
-      window.visualViewport?.removeEventListener("scroll", updateBottomNavKeyboardPush);
-      window.removeEventListener("resize", updateBottomNavKeyboardPush);
-      window.removeEventListener("orientationchange", updateBottomNavKeyboardPush);
-      document.documentElement.style.setProperty("--farm-bottom-nav-keyboard-push", "0px");
+      window.cancelAnimationFrame(rafId);
+      window.visualViewport?.removeEventListener("resize", updateBottomNavKeyboardLock);
+      window.removeEventListener("resize", updateBottomNavKeyboardLock);
+      document.removeEventListener("focusin", updateBottomNavKeyboardLock);
+      document.removeEventListener("focusout", updateBottomNavKeyboardLock);
+      document.documentElement.style.setProperty("--farm-keyboard-lift", "0px");
     };
   }, []);
 
