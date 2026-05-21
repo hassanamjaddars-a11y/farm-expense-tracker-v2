@@ -222,7 +222,6 @@ function AppGlobalHeaderStyles() {
     <style>{`
       :root {
         --farm-app-logo-url: url("${farmAppLogo}");
-        --farm-keyboard-lift: 0px;
       }
 
       /*
@@ -408,7 +407,7 @@ function AppGlobalHeaderStyles() {
           left: 50% !important;
           right: auto !important;
           top: auto !important;
-          bottom: calc(max(8px, env(safe-area-inset-bottom)) - var(--farm-keyboard-lift, 0px)) !important;
+          bottom: max(8px, env(safe-area-inset-bottom)) !important;
           width: min(430px, calc(100vw - 20px)) !important;
           height: auto !important;
           min-height: 78px !important;
@@ -449,7 +448,7 @@ function AppGlobalHeaderStyles() {
           left: 50% !important;
           right: auto !important;
           top: auto !important;
-          bottom: calc(max(8px, env(safe-area-inset-bottom)) - var(--farm-keyboard-lift, 0px)) !important;
+          bottom: max(8px, env(safe-area-inset-bottom)) !important;
           width: min(430px, calc(100vw - 20px)) !important;
           height: auto !important;
           min-height: 78px !important;
@@ -591,46 +590,6 @@ function AppLayout() {
   useEffect(() => {
     setSettingsOpen(false);
   }, [location.pathname, location.search]);
-
-  useEffect(() => {
-    let rafId = 0;
-
-    const updateBottomNavKeyboardLock = () => {
-      if (typeof window === "undefined" || typeof document === "undefined") return;
-
-      window.cancelAnimationFrame(rafId);
-
-      rafId = window.requestAnimationFrame(() => {
-        const viewport = window.visualViewport;
-        const baseHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        const currentHeight = viewport?.height || baseHeight;
-        const currentOffsetTop = viewport?.offsetTop || 0;
-        const keyboardHeight = Math.max(0, baseHeight - currentHeight - currentOffsetTop);
-        const safeKeyboardHeight = keyboardHeight > 120 ? Math.round(keyboardHeight) : 0;
-
-        document.documentElement.style.setProperty(
-          "--farm-keyboard-lift",
-          `${safeKeyboardHeight}px`
-        );
-      });
-    };
-
-    updateBottomNavKeyboardLock();
-
-    window.visualViewport?.addEventListener("resize", updateBottomNavKeyboardLock);
-    window.addEventListener("resize", updateBottomNavKeyboardLock);
-    document.addEventListener("focusin", updateBottomNavKeyboardLock);
-    document.addEventListener("focusout", updateBottomNavKeyboardLock);
-
-    return () => {
-      window.cancelAnimationFrame(rafId);
-      window.visualViewport?.removeEventListener("resize", updateBottomNavKeyboardLock);
-      window.removeEventListener("resize", updateBottomNavKeyboardLock);
-      document.removeEventListener("focusin", updateBottomNavKeyboardLock);
-      document.removeEventListener("focusout", updateBottomNavKeyboardLock);
-      document.documentElement.style.setProperty("--farm-keyboard-lift", "0px");
-    };
-  }, []);
 
   useEffect(() => {
     const SAVE_CLICK_LOCK_MS = 3000;
