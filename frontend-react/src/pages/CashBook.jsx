@@ -9,6 +9,14 @@ import "../styles/cashbook.css";
 
 const CASH_BOOK_STORAGE_KEY = "farm_cashbook_local_entries_v1";
 const CASH_BOOK_LINKED_CACHE_KEY = "farm_cashbook_linked_cache_v1";
+const CASH_BOOK_API_ENDPOINT_CACHE_KEY = "farm_cashbook_api_endpoint_v1";
+
+const CASH_BOOK_API_ENDPOINTS = [
+  "/cash-book",
+  "/cashbook",
+  "/cash-transactions",
+  "/cashtransactions",
+];
 
 const EMPTY_REPORTS_DATA = {
   totalExpenses: 0,
@@ -98,6 +106,201 @@ const writeCashBookEntries = (entries) => {
   localStorage.setItem(CASH_BOOK_STORAGE_KEY, JSON.stringify(entries));
 };
 
+const localTypeToApiType = (type) => {
+  if (type === "opening_balance") return "opening_balance";
+  if (type === "cash_in") return "money_in";
+  if (type === "cash_out") return "expense";
+  return "money_in";
+};
+
+const apiTypeToLocalType = (type) => {
+  if (type === "opening_balance") return "opening_balance";
+  if (type === "money_in" || type === "worker_recovery" || type === "sale_income") {
+    return "cash_in";
+  }
+  return "cash_out";
+};
+
+const combineDateAndTime = (dateValue, timeValue) => {
+  const fallback = new Date();
+  const dateText = dateValue || fallback.toISOString().slice(0, 10);
+  const timeText = timeValue || nowTimeValue();
+  const parsed = new Date(`${dateText}T${timeText}`);
+
+  return Number.isNaN(parsed.getTime()) ? fallback.toISOString() : parsed.toISOString();
+};
+
+const splitApiDateTime = (value) => {
+  const date = value ? new Date(value) : new Date();
+  const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+
+  return {
+    entryDate: safeDate.toISOString().slice(0, 10),
+    entryTime: safeDate.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  };
+};
+
+const isManualCashBookApiItem = (item) => {
+  if (!item || item.isSystemGenerated) return false;
+
+  const type = item.type || "";
+  const sourceKind = item.sourceKind || "manual";
+
+  return (
+    sourceKind === "manual" &&
+    ["opening_balance", "money_in", "expense"].includes(type)
+  );
+};
+
+const apiCashEntryToLocalEntry = (item) => {
+  const { entryDate, entryTime } = splitApiDateTime(
+    item.transactionDate || item.createdAt
+  );
+  const localType = apiTypeToLocalType(item.type);
+
+  return {
+    id: item.clientId || item._id || createId(),
+    dbId: item._id || "",
+    clientId: item.clientId || "",
+    type: localType,
+    amount: Number(item.amount || 0),
+    entryDate,
+    entryTime,
+    note:
+      item.note ||
+      (localType === "opening_balance"
+        ? "Opening cash balance"
+        : item.description || ""),
+    createdAt: item.createdAt || item.transactionDate || new Date().toISOString(),
+    isRemote: true,
+  };
+};
+
+const buildCashBookApiPayload = (entry) => ({
+  clientId: entry.clientId || entry.id,
+  type: localTypeToApiType(entry.type),
+  amount: Number(entry.amount || 0),
+  description:
+    entry.type === "opening_balance"
+      ? "Opening Balance"
+      : entry.note || (entry.type === "cash_in" ? "Cash In" : "Cash Out"),
+  note: entry.note || "",
+  transactionDate: combineDateAndTime(entry.entryDate, entry.entryTime),
+});
+
+const getCachedCashBookApiEndpoint = () => {
+  try {
+    return sessionStorage.getItem(CASH_BOOK_API_ENDPOINT_CACHE_KEY) || "";
+  } catch (error) {
+    return "";
+  }
+};
+
+const setCachedCashBookApiEndpoint = (endpoint) => {
+  try {
+    sessionStorage.setItem(CASH_BOOK_API_ENDPOINT_CACHE_KEY, endpoint);
+  } catch (error) {
+    // Cache is only a convenience. Ignore storage failures.
+  }
+};
+
+const getCashBookEndpointCandidates = () => {
+  const cached = getCachedCashBookApiEndpoint();
+
+  return [
+    ...(cached ? [cached] : []),
+    ...CASH_BOOK_API_ENDPOINTS.filter((endpoint) => endpoint !== cached),
+  ];
+};
+
+const fetchDatabaseCashEntries = async () => {
+  let lastError = null;
+
+  for (const endpoint of getCashBookEndpointCandidates()) {
+    try {
+      const res = await api.get(endpoint);
+      const items = Array.isArray(res?.data?.items) ? res.data.items : [];
+
+      setCachedCashBookApiEndpoint(endpoint);
+
+      return items.filter(isManualCashBookApiItem).map(apiCashEntryToLocalEntry);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Cash book API endpoint not found");
+};
+
+const saveDatabaseCashEntry = async (entry) => {
+  let lastError = null;
+
+  for (const endpoint of getCashBookEndpointCandidates()) {
+    try {
+      const res = await api.post(endpoint, buildCashBookApiPayload(entry));
+
+      setCachedCashBookApiEndpoint(endpoint);
+
+      return apiCashEntryToLocalEntry(res.data);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Cash book API endpoint not found");
+};
+
+const deleteDatabaseCashEntry = async (entry) => {
+  if (!entry?.dbId) return false;
+
+  let lastError = null;
+
+  for (const endpoint of getCashBookEndpointCandidates()) {
+    try {
+      await api.delete(`${endpoint}/${entry.dbId}`);
+
+      setCachedCashBookApiEndpoint(endpoint);
+
+      return true;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Cash book API endpoint not found");
+};
+
+const mergeCashBookEntries = (databaseEntries, localEntries) => {
+  const merged = Array.isArray(databaseEntries) ? [...databaseEntries] : [];
+  const seen = new Set(
+    merged.flatMap((item) => [item.id, item.clientId, item.dbId].filter(Boolean))
+  );
+
+  (Array.isArray(localEntries) ? localEntries : []).forEach((item) => {
+    const keys = [item.id, item.clientId, item.dbId].filter(Boolean);
+    const alreadyExists = keys.some((key) => seen.has(key));
+
+    if (!alreadyExists) {
+      merged.push(item);
+      keys.forEach((key) => seen.add(key));
+    }
+  });
+
+  return merged.sort((a, b) => {
+    const aDate = new Date(
+      a.entryDate ? `${a.entryDate}T${a.entryTime || "00:00"}` : a.createdAt || 0
+    ).getTime();
+    const bDate = new Date(
+      b.entryDate ? `${b.entryDate}T${b.entryTime || "00:00"}` : b.createdAt || 0
+    ).getTime();
+
+    return bDate - aDate;
+  });
+};
+
 const getOpeningBalance = (entries) => {
   const openingEntries = entries.filter((item) => item.type === "opening_balance");
 
@@ -146,7 +349,8 @@ const buildUnifiedActivity = ({
 }) => {
   const localCash = (cashEntries || []).map((item) => ({
     id: item.id,
-    source: "local",
+    dbId: item.dbId || "",
+    source: item.isRemote ? "database-cash" : "local",
     title:
       item.type === "opening_balance"
         ? "Opening Balance"
@@ -155,7 +359,11 @@ const buildUnifiedActivity = ({
       item.type === "opening_balance"
         ? "Initial cash amount"
         : item.type === "cash_in"
-        ? "Manual cash entry"
+        ? item.isRemote
+          ? "Saved cash in"
+          : "Manual cash entry"
+        : item.isRemote
+        ? "Saved cash out"
         : "Manual cash out",
     amount: Number(item.amount || 0),
     type:
@@ -361,10 +569,16 @@ export default function CashBook() {
   const [loading, setLoading] = useState(false);
 
   const fetchLinkedData = async ({ silent = false } = {}) => {
+    setLoading(true);
+
     try {
-      const [reportsRes, salesRes] = await Promise.all([
+      const [reportsRes, salesRes, databaseCashEntries] = await Promise.all([
         api.get("/reports").catch(() => ({ data: {} })),
         api.get("/sales").catch(() => ({ data: {} })),
+        fetchDatabaseCashEntries().catch((error) => {
+          console.error("Cash book database entries fetch error:", error);
+          return null;
+        }),
       ]);
 
       const nextReportsData = {
@@ -382,6 +596,14 @@ export default function CashBook() {
         items: Array.isArray(salesRes?.data?.items) ? salesRes.data.items : [],
         summary: salesRes?.data?.summary || EMPTY_SALES_DATA.summary,
       };
+
+      if (databaseCashEntries) {
+        setEntries((currentEntries) => {
+          const nextEntries = mergeCashBookEntries(databaseCashEntries, currentEntries);
+          writeCashBookEntries(nextEntries);
+          return nextEntries;
+        });
+      }
 
       setReportsData(nextReportsData);
       setSalesData(nextSalesData);
@@ -480,7 +702,7 @@ export default function CashBook() {
     }));
   };
 
-  const saveEntry = () => {
+  const saveEntry = async () => {
     if (!form.amount || Number(form.amount) <= 0) {
       toast.error("Please enter valid amount");
       return;
@@ -499,15 +721,26 @@ export default function CashBook() {
       entryTime: form.entryTime || nowTimeValue(),
       note: form.note.trim(),
       createdAt: new Date().toISOString(),
+      isRemote: false,
     };
+
+    let finalEntry = cleanEntry;
+    let savedToDatabase = false;
+
+    try {
+      finalEntry = await saveDatabaseCashEntry(cleanEntry);
+      savedToDatabase = true;
+    } catch (error) {
+      console.error("Cash book database save error:", error);
+    }
 
     const nextEntries =
       form.type === "opening_balance"
         ? [
-            cleanEntry,
+            finalEntry,
             ...entries.filter((item) => item.type !== "opening_balance"),
           ]
-        : [cleanEntry, ...entries];
+        : [finalEntry, ...entries];
 
     setEntries(nextEntries);
     writeCashBookEntries(nextEntries);
@@ -520,22 +753,38 @@ export default function CashBook() {
     });
 
     toast.success(
-      cleanEntry.type === "opening_balance"
-        ? "Opening balance saved"
-        : cleanEntry.type === "cash_in"
-        ? "Cash in saved"
-        : "Cash out saved"
+      finalEntry.type === "opening_balance"
+        ? savedToDatabase
+          ? "Opening balance saved"
+          : "Opening balance saved locally"
+        : finalEntry.type === "cash_in"
+        ? savedToDatabase
+          ? "Cash in saved"
+          : "Cash in saved locally"
+        : savedToDatabase
+        ? "Cash out saved"
+        : "Cash out saved locally"
     );
   };
 
-  const deleteLocalEntry = (id) => {
-    const ok = window.confirm("Delete this local cash entry?");
+  const deleteLocalEntry = async (id) => {
+    const entry = entries.find((item) => item.id === id);
+    const ok = window.confirm("Delete this cash entry?");
     if (!ok) return;
 
-    const nextEntries = entries.filter((item) => item.id !== id);
-    setEntries(nextEntries);
-    writeCashBookEntries(nextEntries);
-    toast.success("Cash entry deleted");
+    try {
+      if (entry?.dbId) {
+        await deleteDatabaseCashEntry(entry);
+      }
+
+      const nextEntries = entries.filter((item) => item.id !== id);
+      setEntries(nextEntries);
+      writeCashBookEntries(nextEntries);
+      toast.success("Cash entry deleted");
+    } catch (error) {
+      console.error("Cash book database delete error:", error);
+      toast.error("Failed to delete cash entry");
+    }
   };
 
   const initials =
