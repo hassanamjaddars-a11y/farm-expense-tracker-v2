@@ -69,6 +69,14 @@ const readCashBookEntries = () => {
   }
 };
 
+const getCashEntryDateTime = (item) => {
+  if (item?.entryDate) {
+    return `${item.entryDate}T${item.entryTime || "00:00"}`;
+  }
+
+  return item?.createdAt || new Date().toISOString();
+};
+
 const getOpeningBalance = (entries) => {
   const openingEntries = entries.filter((item) => item.type === "opening_balance");
 
@@ -125,7 +133,7 @@ const buildUnifiedActivity = ({
       subtitle: item.type === "cash_in" ? "Manual cash entry" : "Manual cash out",
       amount: Number(item.amount || 0),
       type: item.type === "cash_in" ? "in" : "out",
-      createdAt: item.entryDate || item.createdAt,
+      createdAt: getCashEntryDateTime(item),
       icon: item.type === "cash_in" ? "cashIn" : "cashOut",
     }));
 
